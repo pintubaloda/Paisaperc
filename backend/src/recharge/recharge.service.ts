@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { RechargeTransaction } from './recharge.schema';
@@ -19,7 +19,7 @@ export class RechargeService {
     private commissionService: CommissionService,
     private routingService: RoutingService,
     private apiConfigService: ApiConfigService,
-    private usersService: UsersService,
+    @Inject(forwardRef(() => UsersService)) private usersService: UsersService,
   ) {}
 
   async createRecharge(userId: string, userRole: UserRole, createDto: CreateRechargeDto): Promise<any> {
