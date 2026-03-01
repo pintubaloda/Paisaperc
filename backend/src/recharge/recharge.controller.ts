@@ -1,5 +1,6 @@
 import { Controller, Post, Get, Body, Param, UseGuards, Request, Query } from '@nestjs/common';
 import { RechargeService } from './recharge.service';
+import { TxnEventService } from './txn-event.service';
 import { CreateRechargeDto } from './recharge.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -8,7 +9,10 @@ import { UserRole } from '../common/enums';
 
 @Controller('recharge')
 export class RechargeController {
-  constructor(private readonly rechargeService: RechargeService) {}
+  constructor(
+    private readonly rechargeService: RechargeService,
+    private readonly txnEventService: TxnEventService,
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
