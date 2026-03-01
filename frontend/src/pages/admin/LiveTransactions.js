@@ -140,6 +140,7 @@ const LiveTransactions = () => {
                   <th className="text-left p-3 font-medium">Txn ID</th>
                   <th className="text-left p-3 font-medium">User</th>
                   <th className="text-left p-3 font-medium">Mobile</th>
+                  <th className="text-left p-3 font-medium">Operator</th>
                   <th className="text-left p-3 font-medium">Amount</th>
                   <th className="text-left p-3 font-medium">Status</th>
                   <th className="text-left p-3 font-medium">Provider Ref</th>
@@ -153,6 +154,7 @@ const LiveTransactions = () => {
                     <td className="p-3 font-mono text-xs">{txn.id?.substring(0, 12)}...</td>
                     <td className="p-3 text-sm font-medium">{txn.userName || txn.userId}</td>
                     <td className="p-3 font-medium">{txn.mobile}</td>
+                    <td className="p-3 text-sm">{txn.operatorName || txn.operatorId}</td>
                     <td className="p-3 font-semibold">₹{txn.amount}</td>
                     <td className="p-3"><Badge className={statusColor(txn.status)}>{txn.status?.toUpperCase()}</Badge></td>
                     <td className="p-3 text-xs font-mono">{txn.providerRef || '-'}</td>
@@ -171,7 +173,7 @@ const LiveTransactions = () => {
                   </tr>
                 ))}
                 {filtered.length === 0 && (
-                  <tr><td colSpan="8" className="text-center text-muted-foreground py-8">No transactions found</td></tr>
+                  <tr><td colSpan="9" className="text-center text-muted-foreground py-8">No transactions found</td></tr>
                 )}
               </tbody>
             </table>
