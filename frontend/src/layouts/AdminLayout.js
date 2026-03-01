@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
-import { Smartphone, LayoutDashboard, Users, Settings, TrendingUp, Zap, DollarSign, LogOut, Menu, Route, Activity } from 'lucide-react';
+import { Smartphone, LayoutDashboard, Users, Settings, TrendingUp, Zap, DollarSign, LogOut, Menu, Route, Activity, BookOpen } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '../components/ui/sheet';
 
 const AdminLayout = () => {
@@ -26,6 +26,8 @@ const AdminLayout = () => {
     { icon: <DollarSign className="w-5 h-5" />, label: 'Commission', path: '/admin/commission' },
     { icon: <Route className="w-5 h-5" />, label: 'Routing', path: '/admin/routing' },
     { icon: <Activity className="w-5 h-5" />, label: 'Transactions', path: '/admin/transactions' },
+    { icon: <Zap className="w-5 h-5" />, label: 'Sandbox', path: '/admin/sandbox' },
+    { icon: <BookOpen className="w-5 h-5" />, label: 'Ledger', path: '/admin/ledger' },
     { icon: <TrendingUp className="w-5 h-5" />, label: 'Reports', path: '/admin/reports' },
   ];
 
