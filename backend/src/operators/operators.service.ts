@@ -9,9 +9,24 @@ import { v4 as uuidv4 } from 'uuid';
 export class OperatorsService {
   constructor(@InjectModel(Operator.name) private operatorModel: Model<Operator>) {}
 
+  generateOpCode(name: string, service: string): string {
+    const platformLetter = 'P'; // PaisaPe
+    const serviceMap: Record<string, string> = {
+      mobile: 'M',
+      dth: 'D',
+      bill_payment: 'B',
+    };
+    const serviceLetter = serviceMap[service] || service.charAt(0).toUpperCase();
+    const nameLetter = name.charAt(0).toUpperCase();
+    return `${platformLetter}${serviceLetter}${nameLetter}`;
+  }
+
   async create(createDto: CreateOperatorDto): Promise<any> {
+    const opCode = createDto.opCode || this.generateOpCode(createDto.name, createDto.service);
+
     const operator = new this.operatorModel({
       ...createDto,
+      opCode,
       id: uuidv4(),
     });
     await operator.save();
