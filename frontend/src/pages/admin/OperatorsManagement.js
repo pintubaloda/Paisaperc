@@ -128,13 +128,13 @@ const OperatorsManagement = () => {
                 <Input
                   placeholder="e.g., Jio, Airtel"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) => handleNameChange(e.target.value)}
                   required
                 />
               </div>
               <div className="space-y-2">
                 <Label>Service Type</Label>
-                <Select value={formData.service} onValueChange={(value) => setFormData({ ...formData, service: value })}>
+                <Select value={formData.service} onValueChange={(value) => handleServiceChange(value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -146,12 +146,11 @@ const OperatorsManagement = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Operator Code</Label>
+                <Label>Operator Code <span className="text-xs text-muted-foreground ml-1">(Auto: P + Service + Name)</span></Label>
                 <Input
-                  placeholder="e.g., JIO, AIRTEL"
+                  placeholder="Auto-generated e.g. PMJ"
                   value={formData.opCode}
                   onChange={(e) => setFormData({ ...formData, opCode: e.target.value.toUpperCase() })}
-                  required
                 />
               </div>
               <div className="space-y-2">
