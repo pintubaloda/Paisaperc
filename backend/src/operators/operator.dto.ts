@@ -8,8 +8,9 @@ export class CreateOperatorDto {
   @IsEnum(ServiceType)
   service: ServiceType;
 
+  @IsOptional()
   @IsString()
-  opCode: string;
+  opCode?: string;
 
   @IsOptional()
   @IsString()
