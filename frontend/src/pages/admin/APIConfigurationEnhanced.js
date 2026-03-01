@@ -401,20 +401,24 @@ const APIConfigurationEnhanced = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-4">
-                <Button variant="outline" onClick={() => handleEditAPI(apiItem)} className="w-full">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mt-4">
+                <Button variant="outline" onClick={() => handleEditAPI(apiItem)} className="w-full" data-testid={`edit-api-${apiItem.id}`}>
                   <Edit className="w-4 h-4 mr-2" />
-                  Edit API Details
+                  Edit
                 </Button>
-                <Button variant="outline" onClick={() => openOperatorCodes(apiItem)} className="w-full">
+                <Button variant="outline" onClick={() => openOperatorCodes(apiItem)} className="w-full" data-testid={`operator-codes-${apiItem.id}`}>
                   <LinkIcon className="w-4 h-4 mr-2" />
-                  Operator Codes
+                  Op Codes
                 </Button>
-                <Button variant="outline" onClick={() => openResponseMappings(apiItem)} className="w-full">
+                <Button variant="outline" onClick={() => openResponseMappings(apiItem)} className="w-full" data-testid={`response-map-${apiItem.id}`}>
                   <Settings className="w-4 h-4 mr-2" />
-                  API Responses
+                  Responses
                 </Button>
-                <Button variant="destructive" onClick={() => handleDeleteAPI(apiItem.id)} className="w-full">
+                <Button variant="outline" onClick={() => testApi(apiItem)} className="w-full text-blue-600 border-blue-200 hover:bg-blue-50" data-testid={`test-api-${apiItem.id}`}>
+                  <PlayCircle className="w-4 h-4 mr-2" />
+                  Test API
+                </Button>
+                <Button variant="destructive" onClick={() => handleDeleteAPI(apiItem.id)} className="w-full" data-testid={`delete-api-${apiItem.id}`}>
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete
                 </Button>
