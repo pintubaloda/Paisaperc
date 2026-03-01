@@ -675,4 +675,126 @@ export class RechargeService {
     }
     return results;
   }
+
+  /** Admin manually changes transaction status */
+  async adminChangeStatus(
+    txnId: string,
+    newStatus: string,
+    adminNote: string,
+    adminId: string,
+  ): Promise<any> {
+    const transaction = await this.rechargeModel.findOne({ id: txnId });
+    if (!transaction) throw new BadRequestException('Transaction not found');
+
+    const oldStatus = transaction.status;
+
+    // Handle wallet changes based on status transition
+    if (oldStatus === TransactionStatus.PENDING && newStatus === 'success') {
+      const commission = await this.commissionService.calculateCommission(
+        UserRole.RETAILER, transaction.operatorId, transaction.amount,
+      );
+      transaction.commission = commission;
+      if (commission > 0) {
+        await this.walletService.addBalance(
+          transaction.userId, commission,
+          `Commission ₹${commission} for TXN ${txnId} (admin)`, txnId,
+        );
+      }
+    } else if (oldStatus === TransactionStatus.PENDING && newStatus === 'failed') {
+      transaction.refundAmount = transaction.amount;
+      await this.walletService.addBalance(
+        transaction.userId, transaction.amount,
+        `Refund ₹${transaction.amount} for failed TXN ${txnId} (admin)`, txnId,
+      );
+    } else if (oldStatus === TransactionStatus.DISPUTE && newStatus === 'success') {
+      // Dispute resolved as success — original was failed so user already got refund
+      // Now debit the refund back and credit commission
+      await this.walletService.deductBalance(
+        transaction.userId, transaction.amount,
+        `Debit ₹${transaction.amount} - dispute resolved as success for TXN ${txnId}`, txnId,
+      );
+      const commission = await this.commissionService.calculateCommission(
+        UserRole.RETAILER, transaction.operatorId, transaction.amount,
+      );
+      transaction.commission = commission;
+      if (commission > 0) {
+        await this.walletService.addBalance(
+          transaction.userId, commission,
+          `Commission ₹${commission} for TXN ${txnId} (dispute resolved)`, txnId,
+        );
+      }
+    }
+    // dispute resolved as failed → no wallet change (refund was already done)
+
+    transaction.status = newStatus as TransactionStatus;
+    transaction.responseMessage = `${adminNote || ''} [Admin changed: ${oldStatus} → ${newStatus}]`;
+    await transaction.save();
+
+    const obj = transaction.toObject();
+    delete obj._id;
+    delete obj.__v;
+    return obj;
+  }
+
+  /** Bulk resolve all pending transactions */
+  async bulkResolveStatus(): Promise<any> {
+    const pendingTxns = await this.rechargeModel.find({ status: TransactionStatus.PENDING });
+    const results = { total: pendingTxns.length, resolved: 0, stillPending: 0, failed: 0 };
+
+    for (const txn of pendingTxns) {
+      try {
+        const result = await this.checkPendingStatus(txn.id);
+        if (result.status === TransactionStatus.SUCCESS) results.resolved++;
+        else if (result.status === TransactionStatus.FAILED) results.failed++;
+        else results.stillPending++;
+      } catch {
+        results.stillPending++;
+      }
+    }
+    return results;
+  }
+
+  /** Get transaction detail with API request/response for retry popup */
+  async getTransactionDetail(txnId: string): Promise<any> {
+    const txn = await this.rechargeModel.findOne({ id: txnId }).lean();
+    if (!txn) throw new BadRequestException('Transaction not found');
+
+    const obj = { ...txn } as any;
+    delete obj._id;
+    delete obj.__v;
+
+    // Get available APIs for retry
+    let availableApis = [];
+    try {
+      const apis = await this.apiConfigService.findAll();
+      availableApis = apis.map((a: any) => {
+        const ao = typeof a.toObject === 'function' ? a.toObject() : a;
+        return { id: ao.id, name: ao.name, apiType: ao.apiType, isActive: ao.isActive };
+      });
+    } catch {}
+
+    return { ...obj, availableApis };
+  }
+
+  /** Retry with specific API */
+  async retryWithApi(txnId: string, apiId: string): Promise<any> {
+    const transaction = await this.rechargeModel.findOne({ id: txnId });
+    if (!transaction) throw new BadRequestException('Transaction not found');
+    if (transaction.status !== TransactionStatus.FAILED && transaction.status !== TransactionStatus.PENDING) {
+      throw new BadRequestException('Can only retry failed or pending transactions');
+    }
+
+    // Create new transaction (debit-first flow)
+    return this.createRecharge(
+      transaction.userId,
+      UserRole.RETAILER,
+      {
+        operatorId: transaction.operatorId,
+        mobile: transaction.mobile,
+        amount: transaction.amount,
+        circle: transaction.circle,
+      },
+      transaction.isSandbox,
+    );
+  }
 }
