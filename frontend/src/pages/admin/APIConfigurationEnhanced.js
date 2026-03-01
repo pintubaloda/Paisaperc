@@ -390,6 +390,20 @@ const APIConfigurationEnhanced = () => {
                 <Input placeholder="API authentication token" value={apiForm.authToken} onChange={(e) => setApiForm({ ...apiForm, authToken: e.target.value })} data-testid="api-auth-token" />
               </div>
 
+              <div className="border rounded-lg p-3 bg-blue-50/60 border-blue-200" data-testid="dynamic-variables-reference">
+                <p className="text-sm font-semibold text-blue-900 mb-2">Available Dynamic Variables</p>
+                <p className="text-xs text-blue-700 mb-2">Use these placeholders in Endpoint URL, Parameter values, Header values, and Status Check fields. They are auto-replaced at runtime.</p>
+                <div className="grid grid-cols-3 gap-x-4 gap-y-1">
+                  <code className="text-xs bg-white px-2 py-1 rounded border border-blue-200 cursor-pointer hover:bg-blue-100" onClick={() => copyToClipboard('[number]')}>[number] <span className="text-blue-500">- Mobile No</span></code>
+                  <code className="text-xs bg-white px-2 py-1 rounded border border-blue-200 cursor-pointer hover:bg-blue-100" onClick={() => copyToClipboard('[op_code]')}>[op_code] <span className="text-blue-500">- Operator Code</span></code>
+                  <code className="text-xs bg-white px-2 py-1 rounded border border-blue-200 cursor-pointer hover:bg-blue-100" onClick={() => copyToClipboard('[amount]')}>[amount] <span className="text-blue-500">- Amount</span></code>
+                  <code className="text-xs bg-white px-2 py-1 rounded border border-blue-200 cursor-pointer hover:bg-blue-100" onClick={() => copyToClipboard('[txn_id]')}>[txn_id] <span className="text-blue-500">- Transaction ID</span></code>
+                  <code className="text-xs bg-white px-2 py-1 rounded border border-blue-200 cursor-pointer hover:bg-blue-100" onClick={() => copyToClipboard('[token]')}>[token] <span className="text-blue-500">- Auth Token</span></code>
+                  <code className="text-xs bg-white px-2 py-1 rounded border border-blue-200 cursor-pointer hover:bg-blue-100" onClick={() => copyToClipboard('[circle]')}>[circle] <span className="text-blue-500">- Circle/State</span></code>
+                </div>
+                <p className="text-[10px] text-blue-600 mt-2">Example endpoint: <code className="bg-white px-1 rounded">/recharge?token=[token]&number=[number]&amount=[amount]</code>  |  Click any variable to copy</p>
+              </div>
+
               <div className="space-y-2">
                 <Label>Parameters</Label>
                 <p className="text-xs text-muted-foreground">Add fields sent to the API. Check "Dynamic" and select a system variable for runtime replacement.</p>
