@@ -358,6 +358,7 @@ const APIConfigurationEnhanced = () => {
                       <SelectItem value="GET">GET (Query Params)</SelectItem>
                       <SelectItem value="POST">POST (Form Data)</SelectItem>
                       <SelectItem value="POST_JSON">POST (JSON Body)</SelectItem>
+                      <SelectItem value="POSTDATA">POSTDATA</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
