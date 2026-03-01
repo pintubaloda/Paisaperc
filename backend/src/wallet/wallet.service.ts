@@ -96,4 +96,8 @@ export class WalletService {
       .select('-_id -__v');
     return entries;
   }
+
+  async getAllWallets(): Promise<any[]> {
+    return this.walletModel.find().select('-_id -__v');
+  }
 }
