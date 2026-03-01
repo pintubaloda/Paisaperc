@@ -54,10 +54,7 @@ const LandingPage = () => {
       <nav className="border-b bg-white/80 backdrop-blur-sm fixed w-full z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center">
-              <Smartphone className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-heading font-bold text-primary">PaisaPe</span>
+            <img src="/images/paisape-logo.png" alt="PaisaPe" className="h-8" />
           </div>
           <div className="flex items-center space-x-4">
             <Button
