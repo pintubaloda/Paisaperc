@@ -1,10 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
+import Login from './pages/LoginPage';
+import Register from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
-import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import OperatorsManagement from './pages/admin/OperatorsManagement';
 import APIConfigurationEnhanced from './pages/admin/APIConfigurationEnhanced';
