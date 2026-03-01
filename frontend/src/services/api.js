@@ -30,7 +30,10 @@ export default {
   wallet: {
     get: () => api.get('/wallet'),
     getLedger: (limit = 100) => api.get(`/wallet/ledger?limit=${limit}`),
+    getAll: () => api.get('/wallet/all'),
     getAllLedgers: (limit = 1000) => api.get(`/wallet/all-ledgers?limit=${limit}`),
+    getUserWallet: (userId) => api.get(`/wallet/user/${userId}`),
+    getUserLedger: (userId, limit = 100) => api.get(`/wallet/user/${userId}/ledger?limit=${limit}`),
   },
   operators: {
     getAll: () => api.get('/operators'),
@@ -42,6 +45,7 @@ export default {
     getAll: () => api.get('/api-config'),
     getById: (id) => api.get(`/api-config/${id}`),
     getCallbackUrl: (id) => api.get(`/api-config/${id}/callback-url`),
+    testApi: (id, data) => api.post(`/api-config/${id}/test`, data),
     create: (data) => api.post('/api-config', data),
     update: (id, data) => api.put(`/api-config/${id}`, data),
     updateOperatorCodes: (id, operatorCodes) => api.put(`/api-config/${id}/operator-codes`, { operatorCodes }),
