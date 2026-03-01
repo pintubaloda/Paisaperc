@@ -14,6 +14,11 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
+    // Block admin registration via API
+    if (registerDto.role === 'admin') {
+      throw new UnauthorizedException('Admin accounts cannot be created via registration');
+    }
+
     const user = await this.usersService.create(registerDto);
     
     await this.walletService.createWallet(user.id);
