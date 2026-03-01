@@ -19,7 +19,8 @@ export class AuthController {
   @Post('send-otp')
   async sendOtp(@Body() body: { mobile: string }) {
     const otp = this.authService.generateOtp();
-    console.log(`Mock OTP for ${body.mobile}: ${otp}`);
-    return { message: 'OTP sent successfully', otp, mobile: body.mobile };
+    // In production, send OTP via SMS gateway. Never return OTP in response.
+    console.log(`OTP generated for ${body.mobile}`);
+    return { message: 'OTP sent successfully', mobile: body.mobile };
   }
 }
