@@ -9,25 +9,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Textarea } from '../../components/ui/textarea';
 import api from '../../services/api';
 import { toast } from 'sonner';
-import { Users, Shield, Ban, CheckCircle2, Edit, Wallet, Search } from 'lucide-react';
+import { Users, Shield, Ban, CheckCircle2, Edit, Wallet, Search, BookOpen } from 'lucide-react';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
+  const [wallets, setWallets] = useState({});
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [editUser, setEditUser] = useState(null);
   const [walletUser, setWalletUser] = useState(null);
+  const [ledgerUser, setLedgerUser] = useState(null);
+  const [ledgerEntries, setLedgerEntries] = useState([]);
   const [editForm, setEditForm] = useState({});
   const [walletForm, setWalletForm] = useState({ amount: '', type: 'credit', remarks: '' });
 
-  useEffect(() => { fetchUsers(); }, []);
+  useEffect(() => { fetchData(); }, []);
 
-  const fetchUsers = async () => {
+  const fetchData = async () => {
     try {
-      const res = await api.users.getAll();
-      setUsers(res.data);
+      const [usersRes, walletsRes] = await Promise.all([
+        api.users.getAll(),
+        api.wallet.getAll(),
+      ]);
+      setUsers(usersRes.data);
+      const walletMap = {};
+      walletsRes.data.forEach(w => { walletMap[w.userId] = w.balance; });
+      setWallets(walletMap);
     } catch (error) {
-      toast.error('Failed to fetch users');
+      toast.error('Failed to fetch data');
     } finally {
       setLoading(false);
     }
@@ -37,7 +46,7 @@ const UserManagement = () => {
     try {
       await api.users.toggleStatus(userId);
       toast.success('User status updated');
-      fetchUsers();
+      fetchData();
     } catch (error) {
       toast.error('Failed to update user status');
     }
@@ -54,7 +63,7 @@ const UserManagement = () => {
       await api.users.update(editUser.id, editForm);
       toast.success('User updated successfully');
       setEditUser(null);
-      fetchUsers();
+      fetchData();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update user');
     }
@@ -79,9 +88,20 @@ const UserManagement = () => {
       });
       toast.success(res.data.message);
       setWalletUser(null);
-      fetchUsers();
+      fetchData();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to adjust wallet');
+    }
+  };
+
+  const openLedger = async (user) => {
+    setLedgerUser(user);
+    try {
+      const res = await api.wallet.getUserLedger(user.id, 50);
+      setLedgerEntries(res.data);
+    } catch (error) {
+      toast.error('Failed to fetch ledger');
+      setLedgerEntries([]);
     }
   };
 
@@ -98,15 +118,15 @@ const UserManagement = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-heading font-bold">User Management</h2>
-          <p className="text-muted-foreground">Manage all platform users and their access</p>
+          <p className="text-muted-foreground">Manage users, wallets, and access</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground mb-1">Total Users</p><p className="text-2xl font-bold">{users.length}</p></div><Users className="w-8 h-8 text-blue-600" /></div></CardContent></Card>
-        <Card><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground mb-1">Active Users</p><p className="text-2xl font-bold">{users.filter(u => u.isActive).length}</p></div><CheckCircle2 className="w-8 h-8 text-accent" /></div></CardContent></Card>
+        <Card><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground mb-1">Active</p><p className="text-2xl font-bold">{users.filter(u => u.isActive).length}</p></div><CheckCircle2 className="w-8 h-8 text-accent" /></div></CardContent></Card>
         <Card><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground mb-1">KYC Verified</p><p className="text-2xl font-bold">{users.filter(u => u.kycStatus).length}</p></div><Shield className="w-8 h-8 text-green-600" /></div></CardContent></Card>
-        <Card><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground mb-1">Inactive</p><p className="text-2xl font-bold">{users.filter(u => !u.isActive).length}</p></div><Ban className="w-8 h-8 text-destructive" /></div></CardContent></Card>
+        <Card><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground mb-1">Total Balance</p><p className="text-2xl font-bold">₹{Object.values(wallets).reduce((a, b) => a + b, 0).toFixed(0)}</p></div><Wallet className="w-8 h-8 text-orange-500" /></div></CardContent></Card>
       </div>
 
       <Card>
@@ -128,7 +148,7 @@ const UserManagement = () => {
                   <th className="text-left p-3 font-medium">Email</th>
                   <th className="text-left p-3 font-medium">Mobile</th>
                   <th className="text-left p-3 font-medium">Role</th>
-                  <th className="text-left p-3 font-medium">KYC</th>
+                  <th className="text-left p-3 font-medium">Balance</th>
                   <th className="text-left p-3 font-medium">Status</th>
                   <th className="text-left p-3 font-medium">Actions</th>
                 </tr>
@@ -137,21 +157,18 @@ const UserManagement = () => {
                 {filteredUsers.map((user) => (
                   <tr key={user.id} className="border-b hover:bg-muted/50" data-testid={`user-row-${user.id}`}>
                     <td className="p-3 font-medium">{user.name}</td>
-                    <td className="p-3">{user.email}</td>
+                    <td className="p-3 text-sm">{user.email}</td>
                     <td className="p-3">{user.mobile}</td>
                     <td className="p-3"><Badge variant="outline" className="capitalize">{user.role.replace('_', ' ')}</Badge></td>
-                    <td className="p-3">{user.kycStatus ? <Badge className="bg-accent">Verified</Badge> : <Badge variant="secondary">Pending</Badge>}</td>
+                    <td className="p-3 font-semibold text-accent" data-testid={`user-balance-${user.id}`}>₹{(wallets[user.id] || 0).toFixed(2)}</td>
                     <td className="p-3">{user.isActive ? <Badge className="bg-accent">Active</Badge> : <Badge variant="destructive">Inactive</Badge>}</td>
                     <td className="p-3">
-                      <div className="flex items-center space-x-2">
-                        <Button size="sm" variant="outline" onClick={() => openEditModal(user)} data-testid={`edit-user-${user.id}`}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => openWalletModal(user)} data-testid={`wallet-user-${user.id}`}>
-                          <Wallet className="w-4 h-4" />
-                        </Button>
+                      <div className="flex items-center space-x-1">
+                        <Button size="sm" variant="outline" onClick={() => openEditModal(user)} title="Edit" data-testid={`edit-user-${user.id}`}><Edit className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="outline" onClick={() => openWalletModal(user)} title="Wallet" data-testid={`wallet-user-${user.id}`}><Wallet className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="outline" onClick={() => openLedger(user)} title="Ledger" data-testid={`ledger-user-${user.id}`}><BookOpen className="w-4 h-4" /></Button>
                         <Button size="sm" variant={user.isActive ? "destructive" : "default"} onClick={() => toggleUserStatus(user.id)} data-testid={`toggle-user-${user.id}`}>
-                          {user.isActive ? 'Deactivate' : 'Activate'}
+                          {user.isActive ? <Ban className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
                         </Button>
                       </div>
                     </td>
@@ -201,6 +218,10 @@ const UserManagement = () => {
       <Dialog open={!!walletUser} onOpenChange={(open) => !open && setWalletUser(null)}>
         <DialogContent>
           <DialogHeader><DialogTitle>Manual Wallet - {walletUser?.name}</DialogTitle></DialogHeader>
+          <div className="mb-4 p-3 bg-muted/50 rounded-lg text-center">
+            <p className="text-sm text-muted-foreground">Current Balance</p>
+            <p className="text-2xl font-bold text-accent">₹{(wallets[walletUser?.id] || 0).toFixed(2)}</p>
+          </div>
           <form onSubmit={handleWalletSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>Type</Label>
@@ -224,6 +245,45 @@ const UserManagement = () => {
               {walletForm.type === 'credit' ? 'Credit Wallet' : 'Debit Wallet'}
             </Button>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Ledger View Dialog */}
+      <Dialog open={!!ledgerUser} onOpenChange={(open) => !open && setLedgerUser(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
+          <DialogHeader><DialogTitle>Account Ledger - {ledgerUser?.name}</DialogTitle></DialogHeader>
+          <div className="mb-4 p-3 bg-muted/50 rounded-lg text-center">
+            <p className="text-sm text-muted-foreground">Current Balance</p>
+            <p className="text-2xl font-bold text-accent">₹{(wallets[ledgerUser?.id] || 0).toFixed(2)}</p>
+          </div>
+          {ledgerEntries.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">No ledger entries</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-2 font-medium">Date</th>
+                    <th className="text-left p-2 font-medium">Remark</th>
+                    <th className="text-right p-2 font-medium">Debit</th>
+                    <th className="text-right p-2 font-medium">Credit</th>
+                    <th className="text-right p-2 font-medium">Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ledgerEntries.map((entry, i) => (
+                    <tr key={i} className="border-b hover:bg-muted/50" data-testid={`ledger-row-${i}`}>
+                      <td className="p-2 text-xs whitespace-nowrap">{new Date(entry.createdAt).toLocaleString()}</td>
+                      <td className="p-2">{entry.remark}</td>
+                      <td className="p-2 text-right text-destructive font-medium">{entry.debit > 0 ? `₹${entry.debit.toFixed(2)}` : '-'}</td>
+                      <td className="p-2 text-right text-accent font-medium">{entry.credit > 0 ? `₹${entry.credit.toFixed(2)}` : '-'}</td>
+                      <td className="p-2 text-right font-semibold">₹{entry.balanceAfter.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
