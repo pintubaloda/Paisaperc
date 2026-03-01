@@ -88,7 +88,7 @@ A comprehensive enterprise-grade recharge and bill payment platform built with N
 
 ## 🧪 Quick Test
 
-1. **Login:** https://paisape-wallet.preview.emergentagent.com/login
+1. **Login:** https://operator-router.preview.emergentagent.com/login
    - Use: `retailer@demo.com` / `retailer123`
 
 2. **Process Recharge:**

@@ -1,0 +1,226 @@
+<analysis>original_problem_statement:
+The user wants to build a PaisaPe multi-mobile/DTH recharge and bill payment software.
+
+**PRODUCT REQUIREMENTS:**
+-   **Core Platform**: Landing page, Admin login, and User login.
+-   **Admin Panel**:
+    -   Manage project settings and logo.
+    -   Dynamically add and configure provider APIs (Mobile, DTH, BillPayment).
+    -   Define commission structures (Percentage/Flat) based on user profiles and operators.
+    -   Create an intelligent routing engine (user, amount, operator, profile, state, API balance, success ratio).
+    -   View API balance and set low balance alerts (Email, SMS, Webhook, Telegram).
+    -   Manage users, including editing profiles and manual wallet adjustments.
+    -   View comprehensive reports.
+-   **User Management**:
+    -   Registration (Mobile + OTP), Login (JWT).
+    -   User roles: Retailer, Distributor, Super Distributor, API User.
+    -   KYC Management (PAN, Aadhaar, GST).
+-   **Wallet System (CRITICAL)**:
+    -   Must use a double-entry accounting ledger system.
+    -   Every transaction must be atomic (debit recharge amount, credit commission separately).
+    -   Manual wallet credit/debit for users by admin.
+-   **Recharge Flow**:
+    -   Secure transaction flow with wallet locking, pending status, and success/failure handling.
+    -   Automatic retry/failover to a second API if the first one fails in real-time.
+    -   Manual retry option for failed recharges.
+    -   Transaction status check mechanism.
+-   **API & Security**:
+    -   Provide a customer-facing API for resellers (Recharge, Status check) with API key and IP restriction.
+    -   Implement a strong, configurable response code mapping system.
+    -   Security: JWT, 2FA, IP Whitelisting, Rate Limiting, Encrypted Keys, HMAC for API users.
+-   **Reporting**:
+    -   User ledger, operator-wise, date-wise, commission, API profit, state-wise, and success/fail ratio reports.
+-   **Scalability**:
+    -   The architecture should handle heavy loads using message queues, database transactions, and row-level locking.
+
+**User's preferred language**: English
+
+**what currently exists?**
+A full-stack application with a NestJS backend and a React frontend has been created.
+-   **Backend**: A complete NestJS project structure is in place under . It includes modules for , ,  (with a double-entry ledger schema), , , , , , and . It connects to a MongoDB database. Demo users and operators have been seeded.
+-   **Frontend**: A React application under . It includes a landing page, auth pages (Login/Register), and separate dashboard layouts for Admin and regular Users. Numerous admin pages have been created for managing users, APIs, commissions, and routing, though some are placeholders awaiting full frontend logic. The project uses TailwindCSS for styling.
+-   **Authentication**: JWT-based authentication is implemented and functional for both admin and regular users.
+
+**Last working item**:
+-   Last item agent was working: The agent was beginning to implement a large feature request from the user which involved multiple changes based on provided screenshots. The agent started by modifying the backend entities in , , and  to align with the new requirements for commission settings and routing rules.
+-   Status: IN PROGRESS
+-   Agent Testing Done: N
+-   Which testing method agent to use? both
+-   User Testing Done: N
+
+**All Pending/In progress Issue list**:
+-   **Issue 1: Implement user-requested UI and logic changes (P0)**
+-   **Issue 2: Fix reported routing error (P1)**
+
+Issues Detail:
+-   **Issue 1: Implement user-requested UI and logic changes**
+    -   **Description**: The user provided screenshots and a list of required changes:
+        1.  Add an Edit option for users in the admin panel.
+        2.  Add a Manual Wallet adjustment feature for admins to credit/debit user wallets.
+        3.  Overhaul the Commission setting UI and logic to be based on User Type + Operator + Service, removing the direct link to an API name.
+        4.  Overhaul the Routing rule UI and logic to allow setting a priority list of APIs for a User + Operator combination.
+        5.  Implement real-time API failover (if API 1 fails, automatically try API 2 from the routing rule).
+        6.  Add a Test API button in the API configuration.
+        7.  Auto-generate and display a callback URL for webhooks on the API configuration screen.
+        8.  Add UI for mapping operator codes and API response codes.
+    -   **Attempted fixes**: The agent started modifying the backend Mongoose schemas (, , ) to support the new data structures. No other work has been done.
+    -   **Next debug checklist**:
+        1.  Complete backend service and controller logic for all new features (user edit, manual wallet, new commission/routing, API testing).
+        2.  Implement the API failover logic within the .
+        3.  Update the frontend  page to include an Edit User modal and a Manual Wallet modal.
+        4.  Completely redesign  and  to match the user's screenshots.
+        5.  Enhance  to include the Test API button, callback URL display, and modals for operator/response code mapping.
+    -   **Why fix this issue and what will be achieved with the fix?**: This is a direct and critical request from the user to make the admin panel functional and align with their business logic.
+    -   Status: IN PROGRESS
+    -   Is recurring issue? N
+    -   Should Test frontend/backend/both after fix? both
+    -   Blocked on other issue: None
+
+-   **Issue 2: Fix reported routing error**
+    -   **Description**: User mentioned route have error. The specific error is unknown.
+    -   **Attempted fixes**: None.
+    -   **Next debug checklist**:
+        1.  Investigate the current routing implementation in .
+        2.  Check backend logs for any errors related to routing during a test recharge.
+        3.  The routing logic will be completely overhauled by Issue #1, so this issue will likely be resolved as part of that work. The new logic must be tested thoroughly.
+    -   **Why fix this issue and what will be achieved with the fix?**: The core functionality of the app depends on correctly routing recharges to the appropriate API provider.
+    -   Status: NOT STARTED
+    -   Is recurring issue? N
+    -   Should Test frontend/backend/both after fix? backend
+    -   Blocked on other issue: None
+
+**In progress Task List**:
+-   **Task 1: Complete Backend Implementation for New Features**
+    -   **Where to resume**: The agent has already started modifying entities. The next step is to update the services and controllers in the backend. Resume at  and  to add manual wallet and user edit logic. Then, update the  and  modules.
+    -   **What will be achieved with this?**: The backend will have all the necessary endpoints and logic to support the new UI features requested by the user.
+    -   Status: IN PROGRESS
+    -   Should Test frontend/backend/both after fix? backend
+    -   Blocked on something: None
+
+**Upcoming and Future Tasks**
+-   **Upcoming Tasks**:
+    -   **(P0)** Implement the frontend UI for all the new admin features described in Pending Issue 1.
+    -   **(P1)** KYC Management: Build UI for PAN/Aadhaar/GST document upload and verification.
+    -   **(P1)** Enhance Reports: Add date filters, export to Excel/PDF, and create an operator-wise profit analysis report.
+    -   **(P2)** 2FA Implementation: Add two-factor authentication for enhanced security.
+-   **Future Tasks**:
+    -   Real-time notifications using WebSockets for transaction status.
+    -   Reconciliation System: A cron job to fetch provider reports and auto-detect mismatches.
+    -   Implement a message queue (Kafka/RabbitMQ) for handling high transaction loads.
+    -   Provide a customer-facing API for resellers with HMAC signature validation.
+
+**Completed work in this session**
+-   **Tech Stack Migration**: Switched the backend from Python/FastAPI to Node.js/NestJS based on user request.
+-   **Backend Structure**: Created a full NestJS backend with modules for Auth, Users, Wallet, API Config, Operators, Commission, Routing, and Reports.
+-   **Database**: Set up Mongoose schemas for all core entities, including a double-entry ledger system for wallets.
+-   **Authentication**: Implemented JWT-based login/logout for  and  roles. Fixed a critical bug related to  variable loading in the JWT module.
+-   **Frontend Structure**: Built a React frontend with a landing page, auth pages, and separate admin/user dashboards.
+-   **Admin Panel UI**: Created initial UI pages for User Management, API Configuration, Commission Management, Routing Rules, and Reports.
+-   **Seeding**: Created and executed seed scripts to populate the database with demo users (, ) and sample operators.
+-   **Branding**: Integrated the user-provided PaisaPe logo into the frontend.
+-   **Documentation**: Created a  with demo credentials.
+
+**Earlier issues found/mentioned but not fixed**
+-   **Issue 1: Frontend component import paths**
+    -   **Description**: During development, the agent created frontend pages with incorrect relative paths for UI components (e.g.,  instead of ). It fixed this for , but other pages created in bulk may have similar issues.
+    -   **Debug checklist**: Review all admin pages in  for correct import paths. Check the browser console for module not found errors.
+    -   **Why to solve this issue and what will be achieved with this?**: The frontend will not compile or render correctly until all component import paths are fixed.
+    -   **Should Test frontend/backend/both after fix**: frontend
+    -   **Is recurring issue?**: Y
+
+**Known issue recurrence from previous fork**
+-   None.
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+-   **Backend**: NestJS (Node.js framework), TypeScript
+-   **Frontend**: React, JavaScript
+-   **Database**: MongoDB with Mongoose ODM
+-   **Authentication**: JWT (JSON Web Tokens)
+-   **Architecture**: REST API, Double-entry ledger accounting
+
+**key DB schema**
+-   **users**: { email, password, role: ('Admin', 'Retailer', etc.), profile, ... }
+-   **wallets**: { userId, balance, ... }
+-   **ledgers**: { userId, txn_id, debit, credit, balance_after, type, remark, ... }
+-   **operators**: { name, service, op_code, ... }
+-   **api_master**: { api_name, api_type, domain, endpoint, method, parameters, ... }
+-   **commission_master**: { profile_id, operator_id, commission_type, commission_value, ... }
+-   **routing_rules**: { user_id, operator_id, api_priority: [api_id], ... }
+-   **recharge_transactions**: { userId, amount, status, op_id, provider_ref, ... }
+
+**changes in tech stack**
+-   The project was initially scaffolded with a Python/FastAPI backend, but per the user's request, the agent completely rebuilt the backend using **Node.js with the NestJS framework**.
+
+**All files of reference**
+-   : Contains the core recharge transaction logic, will need to be updated for API failover.
+-   : To be updated with user edit and manual wallet logic.
+-   : To be updated for new commission logic.
+-   : To be updated for new routing logic.
+-   : The main UI for managing APIs, to be enhanced.
+-   : UI for commissions, needs a complete overhaul.
+-   : UI for routing, needs a complete overhaul.
+-   : UI for user management, needs edit/wallet features.
+-   : Contains all the frontend routes.
+-   : Contains demo credentials.
+
+**Areas that need refactoring**:
+-   The frontend admin pages were generated in large batches. They need to be reviewed for consistency, correctness of API calls, and state management. Many pages are placeholders and need to be connected to the backend APIs.
+-   The  service file in the frontend is becoming a monolith. It could be split by feature (e.g., , ).
+
+**key api endpoints**
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   (New endpoints to be created for user edit, manual wallet, etc.)
+
+**Critical Info for New Agent**
+-   The user is highly engaged and provides specific feedback with screenshots. The next agent MUST follow the latest instructions and screenshot mockups precisely.
+-   The backend stack is **NestJS**, not Python. All backend work must be done in the  directory using TypeScript.
+-   The agent has only started the backend entity changes for the latest request. The service logic, controller endpoints, and the entire frontend implementation for these new features are still pending.
+-   The user reported a route have error, which needs investigation, but it might be resolved by the new routing logic implementation.
+
+**documents and test reports created in this job**
+-   
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **User (Msg 293)**: Requested multiple critical features with screenshots: user edit, manual wallet, new commission structure, new routing structure, API failover, Test API button, and reported a routing error. (IN PROGRESS)
+2.  **User (Msg 268)**: Requested enhancements to the API configuration page with screenshots: auto-generate callback URLs, map operator codes, manage response codes, and an edit option. (Partially Implemented, needs UI completion)
+3.  **User (Msg 266)**: Agent confirmed admin pages are working and provided a summary.
+4.  **User (Msg 264)**: Agent took screenshots to verify admin pages.
+5.  **User (Msg 262)**: Agent updated App.js with new routes.
+6.  **User (Msg 260)**: Agent created a comprehensive Reports page.
+7.  **User (Msg 258)**: Agent created Commission and Routing pages.
+8.  **User (Msg 256)**: Agent created the API Configuration page.
+9.  **User (Msg 254)**: Agent acknowledged request to build all remaining admin UI pages.
+10. **User (Msg 253)**: User asked to map the frontend to the backend and listed next steps. (IN PROGRESS)
+
+**Project Health Check:**
+-   **Broken**: The frontend is partially broken. While some pages render, many admin pages have incorrect import paths or are placeholders not yet connected to backend APIs. The routing logic is reported to be faulty.
+-   **Mocked**: No mocked services.
+
+**3rd Party Integrations**
+-   None implemented yet. The platform is being built to allow the admin to add third-party recharge APIs.
+
+**Testing status**
+-   Testing agent used after significant changes: NO
+-   Troubleshoot agent used after agent stuck in loop: NO
+-   Test files created: []
+-   Known regressions: The initial Python backend was replaced, which is a major planned change, not a regression. The routing system is reported as having an error.
+
+**Credentials to test flow:**
+-   Credentials for admin and retailer users are available in .
+    -   Admin:  / 
+    -   Retailer:  / 
+
+**What agent forgot to execute**
+-   The agent did not complete the multi-part feature request from the last user message. It only started modifying backend entities and did not implement the service logic, controller endpoints, or any of the required frontend UI changes (user edit, manual wallet, new commission/routing UI, API testing features).
+-   The agent has not investigated or fixed the route have error reported by the user.
+-   The agent has not implemented most of the future-facing items from the original PRD like KYC, 2FA, reconciliation, or message queues.</analysis>

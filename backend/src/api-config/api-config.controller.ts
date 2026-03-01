@@ -41,7 +41,7 @@ export class ApiConfigController {
   @Roles(UserRole.ADMIN)
   async getCallbackUrl(@Param('id') id: string) {
     const api = await this.apiConfigService.findById(id);
-    const callbackUrl = `${process.env.REACT_APP_BACKEND_URL || 'https://paisape-wallet.preview.emergentagent.com'}/api/webhooks/callback/${api.id}/${api['callbackToken']}`;
+    const callbackUrl = `${process.env.REACT_APP_BACKEND_URL || 'https://operator-router.preview.emergentagent.com'}/api/webhooks/callback/${api.id}/${api['callbackToken']}`;
     return { callbackUrl, token: api['callbackToken'] };
   }
 
