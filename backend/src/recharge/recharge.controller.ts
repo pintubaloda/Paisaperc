@@ -43,15 +43,15 @@ export class RechargeController {
   @Get('failed/list')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async failedTransactions() {
-    return this.rechargeService.getFailedTransactions();
+  async failedTransactions(@Query('limit') limit: string) {
+    return this.rechargeService.getFailedTransactions(parseInt(limit) || 100);
   }
 
   @Get('pending/list')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async pendingTransactions() {
-    return this.rechargeService.getPendingTransactions();
+  async pendingTransactions(@Query('limit') limit: string) {
+    return this.rechargeService.getPendingTransactions(parseInt(limit) || 100);
   }
 
   @Get('timeline/:id')
