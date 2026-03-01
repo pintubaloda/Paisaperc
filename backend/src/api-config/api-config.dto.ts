@@ -90,6 +90,52 @@ export class CreateAPIDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isSandbox?: boolean;
+
+  @IsOptional()
+  @IsString()
+  statusCheckEndpoint?: string;
+
+  @IsOptional()
+  @IsString()
+  statusCheckMethod?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => APIParameterDto)
+  statusCheckParams?: APIParameterDto[];
+
+  @IsOptional()
+  @IsString()
+  callbackToken?: string;
+
+  @IsOptional()
+  @IsString()
+  sampleRequest?: string;
+
+  @IsOptional()
+  @IsString()
+  sampleResponse?: string;
+
+  @IsOptional()
+  @IsNumber()
+  successRate?: number;
+
+  @IsOptional()
+  @IsNumber()
+  balance?: number;
+
+  @IsOptional()
+  @IsArray()
+  operatorCodes?: any[];
+
+  @IsOptional()
+  @IsArray()
+  responseMappings?: any[];
 }
 
 export class UpdateAPIDto {
