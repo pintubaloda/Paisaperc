@@ -91,22 +91,27 @@ const APIConfigurationEnhanced = () => {
     }
   };
 
+  const [testForm, setTestForm] = useState({ mobile: '', operatorCode: '', amount: '' });
+
   const testApi = async (apiItem) => {
     setSelectedAPI(apiItem);
     setTestResult(null);
+    setTestForm({ mobile: '', operatorCode: '', amount: '' });
     setShowTestDialog(true);
+  };
+
+  const executeTestApi = async () => {
+    if (!selectedAPI) return;
     setTesting(true);
     try {
-      const url = `${apiItem.protocol}://${apiItem.domain}${apiItem.endpoint}`;
-      setTestResult({
-        status: 'success',
-        url,
-        message: `API endpoint configured: ${apiItem.method} ${url}`,
-        parameters: apiItem.parameters?.length || 0,
-        isActive: apiItem.isActive,
+      const res = await api.apiConfig.testApi(selectedAPI.id, {
+        mobile: testForm.mobile || '9999999999',
+        operatorCode: testForm.operatorCode || 'TEST',
+        amount: parseFloat(testForm.amount) || 10,
       });
+      setTestResult(res.data);
     } catch (error) {
-      setTestResult({ status: 'error', message: error.message });
+      setTestResult({ status: 'error', message: error.response?.data?.message || error.message });
     } finally {
       setTesting(false);
     }
