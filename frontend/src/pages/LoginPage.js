@@ -37,9 +37,7 @@ const LoginPage = () => {
       <Card className="w-full max-w-md" data-testid="login-card">
         <CardHeader className="space-y-4">
           <div className="flex justify-center">
-            <div className="w-12 h-12 bg-primary rounded-md flex items-center justify-center">
-              <Smartphone className="w-7 h-7 text-white" />
-            </div>
+            <img src="/images/paisape-logo.png" alt="PaisaPe" className="h-14" />
           </div>
           <CardTitle className="text-3xl font-heading text-center">Welcome Back</CardTitle>
           <CardDescription className="text-center">
