@@ -3,6 +3,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { RechargeController } from './recharge.controller';
 import { RechargeService } from './recharge.service';
 import { RechargeTransaction, RechargeTransactionSchema } from './recharge.schema';
+import { TxnEvent, TxnEventSchema } from './txn-event.schema';
+import { TxnEventService } from './txn-event.service';
 import { WalletModule } from '../wallet/wallet.module';
 import { CommissionModule } from '../commission/commission.module';
 import { RoutingModule } from '../routing/routing.module';
@@ -12,7 +14,10 @@ import { OperatorsModule } from '../operators/operators.module';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: RechargeTransaction.name, schema: RechargeTransactionSchema }]),
+    MongooseModule.forFeature([
+      { name: RechargeTransaction.name, schema: RechargeTransactionSchema },
+      { name: TxnEvent.name, schema: TxnEventSchema },
+    ]),
     WalletModule,
     CommissionModule,
     RoutingModule,
@@ -21,7 +26,7 @@ import { OperatorsModule } from '../operators/operators.module';
     forwardRef(() => UsersModule),
   ],
   controllers: [RechargeController],
-  providers: [RechargeService],
-  exports: [RechargeService],
+  providers: [RechargeService, TxnEventService],
+  exports: [RechargeService, TxnEventService],
 })
 export class RechargeModule {}
