@@ -54,6 +54,12 @@ export class RechargeController {
     return this.rechargeService.getPendingTransactions();
   }
 
+  @Get('timeline/:id')
+  @UseGuards(JwtAuthGuard)
+  async getTimeline(@Param('id') id: string) {
+    return this.txnEventService.getTimeline(id);
+  }
+
   @Get('detail/:id')
   @UseGuards(JwtAuthGuard)
   async transactionDetail(@Param('id') id: string) {
