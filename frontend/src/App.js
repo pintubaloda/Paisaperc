@@ -15,6 +15,7 @@ import UserManagement from './pages/admin/UserManagement';
 import OperatorsManagement from './pages/admin/OperatorsManagement';
 import APIConfigurationEnhanced from './pages/admin/APIConfigurationEnhanced';
 import CommissionManagement from './pages/admin/CommissionManagement';
+import RoutingRules from './pages/admin/RoutingRules';
 import AdvancedReports from './pages/admin/AdvancedReports';
 import './App.css';
 
@@ -42,6 +43,7 @@ function App() {
             <Route path="operators" element={<OperatorsManagement />} />
             <Route path="api-config" element={<APIConfigurationEnhanced />} />
             <Route path="commission" element={<CommissionManagement />} />
+            <Route path="routing" element={<RoutingRules />} />
             <Route path="reports" element={<AdvancedReports />} />
           </Route>
 
