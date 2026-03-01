@@ -1,14 +1,18 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './user.schema';
 import { RegisterDto, UpdateKycDto } from './user.dto';
+import { WalletService } from '../wallet/wallet.service';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    @Inject(forwardRef(() => WalletService)) private walletService: WalletService,
+  ) {}
 
   async create(registerDto: RegisterDto): Promise<any> {
     const existing = await this.userModel.findOne({ email: registerDto.email });
