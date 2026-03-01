@@ -177,13 +177,16 @@ export class RechargeService {
           `Commission ₹${commission} for TXN ${txnId}`,
           txnId,
         );
+        await this.txnEvents.log(txnId, 'commission_credit', `Commission ₹${commission} credited to wallet`, 'success', { commission });
       }
+      await this.txnEvents.log(txnId, 'txn_success', `Transaction completed successfully | Ref: ${apiResult.providerRef}`, 'success');
     } else if (apiResult.status === 'pending') {
       transaction.status = TransactionStatus.PENDING;
       transaction.apiId = apiResult.apiId;
       transaction.providerRef = apiResult.providerRef;
       transaction.responseCode = 'TUP';
       transaction.responseMessage = apiResult.message;
+      await this.txnEvents.log(txnId, 'txn_pending', `Transaction pending — awaiting provider confirmation`, 'pending');
     } else {
       // FAILED -> Refund full amount
       transaction.status = TransactionStatus.FAILED;
@@ -197,6 +200,8 @@ export class RechargeService {
         `Refund ₹${createDto.amount} for failed TXN ${txnId}`,
         txnId,
       );
+      await this.txnEvents.log(txnId, 'refund', `Refunded ₹${createDto.amount} to wallet`, 'failed', { amount: createDto.amount });
+      await this.txnEvents.log(txnId, 'txn_failed', `Transaction failed: ${apiResult.message}`, 'failed');
     }
 
     await transaction.save();
