@@ -1,7 +1,7 @@
 # PaisaPe - Multi Recharge & Bill Payment Platform
 
 ## Original Problem Statement
-Build a "PaisaPe" multi-mobile/DTH recharge and bill payment software with admin panel, user management, double-entry wallet, intelligent routing with API failover, commission settings, and support for third-party recharge APIs (StockXchange, MoneyArt formats).
+Build a "PaisaPe" multi-mobile/DTH recharge and bill payment software with admin panel, user management, double-entry wallet, intelligent routing with API failover, commission settings, and support for third-party recharge APIs.
 
 ## Tech Stack
 - **Backend**: NestJS (TypeScript) on port 8001
@@ -10,55 +10,63 @@ Build a "PaisaPe" multi-mobile/DTH recharge and bill payment software with admin
 - **Auth**: JWT-based authentication
 
 ## Demo Credentials
-- Admin: `admin@paisape.com` / `admin123`
-- Retailer: `retailer@demo.com` / `retailer123`
-- Distributor: `distributor@demo.com` / `distributor123`
-- API User: `api@demo.com` / `apiuser123`
+- Admin: `admin@test.com` / `password123`
+- Retailer: `retailer@test.com` / `password123`
 
 ## What's Implemented
 
 ### Backend
 - Auth (JWT login/register)
 - Users (CRUD, edit, toggle, manual wallet credit/debit)
-- Wallet (double-entry ledger, all wallets view, per-user ledger, admin endpoints)
-- Operators (CRUD)
-- API Config (CRUD, headers, authToken, requestFormat, response field mapping, test API with params, operator codes, response mappings)
+- Wallet (double-entry ledger, consolidated ledger report, all wallets view, per-user ledger)
+- Operators (CRUD with name, service type, opCode)
+- API Config (CRUD, headers, authToken, requestFormat, response field mapping, test API, operator codes, response mappings, status check config)
 - Commission (CRUD by User Type + Operator + Service)
 - Routing (API priority list with failover)
-- Recharge (failover, retry, stats, enriched with user names, bulk mock test)
-- Reports (dashboard stats, admin dashboard)
+- Recharge:
+  - Atomic debit-first flow (debit -> API call -> refund on fail OR commission on success)
+  - **Dynamic Variable Substitution** in API URLs and request bodies: `[number]`, `[op_code]`, `[amount]`, `[txn_id]`, `[token]`, `[circle]`, `[provider_ref]`
+  - **Operator Code Mapping** - translates operatorId to provider-specific codes
+  - **Request Format Support** - GET, POST, POST_JSON, POSTDATA (form-urlencoded)
+  - **Response Parsing** - supports nested dot-notation paths, response code mapping
+  - **Transaction Status Check** - resolves pending txns via provider's status check API
+  - **Operator Name** in all transaction records and reports
+  - Failover to next API on failure, Retry for failed txns
+  - Sandbox mode with random outcomes, Bulk sandbox test runner
+- Reports (dashboard stats, admin dashboard, operator-wise data)
 
-### Admin Panel (8 pages)
+### Admin Panel
 - Dashboard with stats
 - User Management: wallet balance column, Edit/Wallet/Ledger/Toggle actions
 - Operators Management
-- API Config: auth token, headers, request format (query_param/json_body), method (GET/POST/POST_JSON/POSTDATA), dynamic system variables ([number], [op_code], [amount], [txn_id], [token], [circle]), response field mapping, Test API with mobile/operator/amount
+- API Configuration: full provider setup with dynamic variables, test API
 - Commission Settings (User Type + Operator + Service)
 - Routing Rules (API priority with failover)
-- Live Transactions (user names, auto-refresh, filter, search, retry)
-- Reports (user names, failed/pending tabs, CSV export)
+- Live Transactions: user names, **operator names**, auto-refresh, filter, search, retry, check-status
+- Advanced Reports: All/Failed/Pending tabs with **operator names**, CSV export
+- Ledger Report: consolidated view with opening/closing balances, CSV export
+- Sandbox Test runner
 
-### User Panel (5 pages)
-- Dashboard, Recharge, Wallet, Reports (txn + ledger tabs), Settings (profile/KYC/password)
-
-### API Format Support
-- **StockXchange**: GET query params (type, token, op_code, number, amount, txn_id)
-- **MoneyArt**: POST JSON with headers (X-Client-Id, X-Client-Secret)
-
-### Stress Test Results
-- 100 mock transactions completed in seconds
-- Wallet debit and ledger verified correctly
-- Success rate: ~37% (simulated), all debits and commissions tracked
+### User Panel
+- Dashboard, Recharge, Wallet, Reports, Settings
 
 ## P1 - Next Up
-- KYC Management (document upload & verification)
-- Real API integration (replace mock with actual HTTP calls)
-- Password change API
-- Enhanced reports (date filters, export PDF/Excel)
+- KYC Management (PAN/Aadhaar/GST document upload & admin verification)
+- Enhanced Reports (operator-wise profit analysis, date filters)
 
 ## P2 - Future/Backlog
-- 2FA, WebSocket notifications, Reconciliation, Message queue, Reseller API with HMAC
+- 2FA Implementation
+- WebSocket notifications for real-time transaction updates
+- Reconciliation System (cron job to detect mismatches)
+- Message queue (RabbitMQ) for high transaction loads
+- Customer-facing reseller API with HMAC signature validation
+- Refactor api.js into feature-based service modules
+
+## Key Architecture
+- **Transaction Flow**: Debit wallet -> Call provider API (with failover) -> On success: credit commission. On failure: refund. On pending: mark for status check later.
+- **Dynamic Variables**: `[number]`, `[op_code]`, `[amount]`, `[txn_id]`, `[token]`, `[circle]`, `[provider_ref]` - substituted in URLs, request params, and headers
+- **Status Check**: Sandbox randomly resolves (60% success, 20% pending, 20% failed). Real APIs call provider's statusCheckEndpoint with configured method/params.
 
 ## Notes
-- Recharge API calls are **MOCKED** (simulated with random success/failure)
-- Backend: `cd /app/backend && npx tsc && sudo supervisorctl restart backend`
+- Sandbox mode uses **MOCKED** random responses (not real provider APIs)
+- Build backend: `cd /app/backend && yarn build && sudo supervisorctl restart backend`
