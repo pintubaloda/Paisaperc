@@ -1,8 +1,10 @@
 import { Controller, Post, Body, Param, Headers, BadRequestException } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { WebhookService } from './webhook.service';
 import { ApiConfigService } from '../api-config/api-config.service';
 
 @Controller('webhook')
+@SkipThrottle()
 export class WebhookController {
   constructor(
     private readonly webhookService: WebhookService,
@@ -20,6 +22,15 @@ export class WebhookController {
     const cfg = apiConfig.toObject();
     if (cfg.callbackToken && cfg.callbackToken !== headerToken && cfg.callbackToken !== body.token) {
       throw new BadRequestException('Invalid callback token');
+    }
+
+    // Replay protection — reject if timestamp older than 5 minutes
+    if (body.timestamp) {
+      const webhookTime = new Date(body.timestamp).getTime();
+      const now = Date.now();
+      if (Math.abs(now - webhookTime) > 5 * 60 * 1000) {
+        throw new BadRequestException('Webhook timestamp expired');
+      }
     }
 
     // Extract status from body using configured fields
