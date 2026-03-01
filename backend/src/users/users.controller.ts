@@ -40,4 +40,18 @@ export class UsersController {
   async toggleStatus(@Param('id') id: string) {
     return this.usersService.toggleUserStatus(id);
   }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async updateUser(@Param('id') id: string, @Body() updateData: any) {
+    return this.usersService.updateUser(id, updateData);
+  }
+
+  @Post(':id/adjust-wallet')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async adjustWallet(@Param('id') id: string, @Body() body: { amount: number; type: string; remarks: string }) {
+    return this.usersService.adjustWallet(id, body.amount, body.type, body.remarks);
+  }
 }
