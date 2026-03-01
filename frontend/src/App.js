@@ -10,12 +10,15 @@ import AdminLayout from './layouts/AdminLayout';
 import Dashboard from './pages/Dashboard';
 import RechargePage from './pages/RechargePage';
 import WalletPage from './pages/WalletPage';
+import UserReports from './pages/UserReports';
+import UserSettings from './pages/UserSettings';
 import AdminDashboard from './pages/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import OperatorsManagement from './pages/admin/OperatorsManagement';
 import APIConfigurationEnhanced from './pages/admin/APIConfigurationEnhanced';
 import CommissionManagement from './pages/admin/CommissionManagement';
 import RoutingRules from './pages/admin/RoutingRules';
+import LiveTransactions from './pages/admin/LiveTransactions';
 import AdvancedReports from './pages/admin/AdvancedReports';
 import './App.css';
 
@@ -23,19 +26,22 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <Toaster position="top-right" richColors />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           
+          {/* User Dashboard */}
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="recharge" element={<RechargePage />} />
             <Route path="wallet" element={<WalletPage />} />
-            <Route path="reports" element={<div className="text-center py-12">Reports Page Coming Soon</div>} />
-            <Route path="settings" element={<div className="text-center py-12">Settings Page Coming Soon</div>} />
+            <Route path="reports" element={<UserReports />} />
+            <Route path="settings" element={<UserSettings />} />
           </Route>
-
+          
+          {/* Admin Dashboard */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
@@ -44,12 +50,12 @@ function App() {
             <Route path="api-config" element={<APIConfigurationEnhanced />} />
             <Route path="commission" element={<CommissionManagement />} />
             <Route path="routing" element={<RoutingRules />} />
+            <Route path="transactions" element={<LiveTransactions />} />
             <Route path="reports" element={<AdvancedReports />} />
           </Route>
-
+          
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-        <Toaster position="bottom-right" />
       </BrowserRouter>
     </AuthProvider>
   );
