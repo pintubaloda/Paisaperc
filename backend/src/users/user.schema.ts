@@ -39,6 +39,27 @@ export class User extends Document {
   gstNumber: string;
 
   @Prop()
+  kycVerifiedBy: string;
+
+  @Prop()
+  kycVerifiedAt: Date;
+
+  @Prop()
+  kycRejectionReason: string;
+
+  @Prop({ default: 'pending' })
+  kycVerificationStatus: string;
+
+  @Prop()
+  panDocUrl: string;
+
+  @Prop()
+  aadhaarDocUrl: string;
+
+  @Prop()
+  gstDocUrl: string;
+
+  @Prop()
   apiKey: string;
 
   @Prop()
