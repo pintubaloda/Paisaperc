@@ -287,6 +287,9 @@ const APIConfigurationEnhanced = () => {
       balanceField: 'balance',
       messageField: 'status_msg',
       isActive: true,
+      statusCheckEndpoint: '',
+      statusCheckMethod: 'GET',
+      statusCheckParams: [],
     });
   };
 
