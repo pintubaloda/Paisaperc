@@ -101,6 +101,7 @@ export class RechargeService {
       `Recharge ₹${createDto.amount} for ${createDto.mobile}`,
       txnId,
     );
+    await this.txnEvents.log(txnId, 'wallet_debit', `Debited ₹${createDto.amount} from wallet`, 'pending', { amount: createDto.amount });
 
     // Create transaction record
     const transaction = new this.rechargeModel({
