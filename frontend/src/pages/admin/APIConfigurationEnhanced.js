@@ -468,18 +468,23 @@ const APIConfigurationEnhanced = () => {
 
               <div className="space-y-2">
                 <Label>Status Check API (Optional)</Label>
+                <p className="text-xs text-muted-foreground">Configure the endpoint to check transaction status. Use dynamic variables like <code className="bg-muted px-1 rounded">[txn_id]</code>, <code className="bg-muted px-1 rounded">[token]</code> in the fields below.</p>
                 <div className="border rounded-lg p-3 bg-muted/30 grid grid-cols-2 gap-3">
-                  <div className="col-span-2"><Label className="text-xs">Status Check Endpoint</Label><Input placeholder="/ (same domain)" value={apiForm.statusCheckEndpoint || ''} onChange={(e) => setApiForm({ ...apiForm, statusCheckEndpoint: e.target.value })} className="text-sm" /></div>
+                  <div className="col-span-2"><Label className="text-xs">Status Check Endpoint</Label><Input placeholder="/status?token=[token]&txn_id=[txn_id]" value={apiForm.statusCheckEndpoint || ''} onChange={(e) => setApiForm({ ...apiForm, statusCheckEndpoint: e.target.value })} className="text-sm" data-testid="api-status-check-endpoint" /></div>
                   <div><Label className="text-xs">Method</Label>
                     <Select value={apiForm.statusCheckMethod || 'GET'} onValueChange={(v) => setApiForm({ ...apiForm, statusCheckMethod: v })}>
-                      <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="text-sm" data-testid="api-status-check-method"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="GET">GET</SelectItem>
                         <SelectItem value="POST">POST</SelectItem>
+                        <SelectItem value="POST_JSON">POST (JSON)</SelectItem>
+                        <SelectItem value="POSTDATA">POSTDATA</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div><Label className="text-xs">Format: ?type=STATUS&token=[token]&txn_id=[txn_id]</Label></div>
+                  <div className="flex items-end">
+                    <p className="text-xs text-muted-foreground pb-2">Variables: <code>[txn_id]</code> <code>[token]</code> <code>[number]</code> <code>[provider_ref]</code></p>
+                  </div>
                 </div>
               </div>
 
