@@ -80,6 +80,22 @@ const OperatorsManagement = () => {
     }
   };
 
+  const generateOpCode = (name, service) => {
+    if (!name) return '';
+    const serviceMap = { mobile: 'M', dth: 'D', bill_payment: 'B' };
+    return `P${serviceMap[service] || 'X'}${name.charAt(0).toUpperCase()}`;
+  };
+
+  const handleNameChange = (name) => {
+    const autoCode = generateOpCode(name, formData.service);
+    setFormData({ ...formData, name, opCode: formData.opCode && editingOperator ? formData.opCode : autoCode });
+  };
+
+  const handleServiceChange = (service) => {
+    const autoCode = generateOpCode(formData.name, service);
+    setFormData({ ...formData, service, opCode: formData.opCode && editingOperator ? formData.opCode : autoCode });
+  };
+
   const serviceColors = {
     mobile: 'bg-blue-100 text-blue-700',
     dth: 'bg-purple-100 text-purple-700',
