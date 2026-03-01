@@ -14,6 +14,7 @@ const rechargeService = {
   retryWithApi: (id, apiId) => apiClient.post(`/recharge/${id}/retry-with-api`, { apiId }),
   changeStatus: (id, status, note) => apiClient.post(`/recharge/${id}/change-status`, { status, note }),
   bulkResolve: () => apiClient.post('/recharge/bulk-resolve'),
+  getTimeline: (id) => apiClient.get(`/recharge/timeline/${id}`),
   sandboxTest: (data) => apiClient.post('/recharge/sandbox-test', data),
 };
 
