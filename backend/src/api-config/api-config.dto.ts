@@ -13,6 +13,14 @@ export class APIParameterDto {
   isDynamic: boolean;
 }
 
+export class APIHeaderDto {
+  @IsString()
+  key: string;
+
+  @IsString()
+  value: string;
+}
+
 export class CreateAPIDto {
   @IsString()
   name: string;
@@ -38,6 +46,48 @@ export class CreateAPIDto {
   parameters: APIParameterDto[];
 
   @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => APIHeaderDto)
+  headers?: APIHeaderDto[];
+
+  @IsOptional()
+  @IsString()
+  authToken?: string;
+
+  @IsOptional()
+  @IsString()
+  requestFormat?: string;
+
+  @IsOptional()
+  @IsString()
+  successField?: string;
+
+  @IsOptional()
+  @IsString()
+  successValue?: string;
+
+  @IsOptional()
+  @IsString()
+  failedValue?: string;
+
+  @IsOptional()
+  @IsString()
+  pendingValue?: string;
+
+  @IsOptional()
+  @IsString()
+  txnIdField?: string;
+
+  @IsOptional()
+  @IsString()
+  balanceField?: string;
+
+  @IsOptional()
+  @IsString()
+  messageField?: string;
+
+  @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 }
@@ -46,6 +96,22 @@ export class UpdateAPIDto {
   @IsOptional()
   @IsString()
   name?: string;
+
+  @IsOptional()
+  @IsString()
+  protocol?: string;
+
+  @IsOptional()
+  @IsString()
+  domain?: string;
+
+  @IsOptional()
+  @IsString()
+  endpoint?: string;
+
+  @IsOptional()
+  @IsEnum(APIMethod)
+  method?: APIMethod;
 
   @IsOptional()
   @IsBoolean()
@@ -62,4 +128,44 @@ export class UpdateAPIDto {
   @IsOptional()
   @IsArray()
   parameters?: APIParameterDto[];
+
+  @IsOptional()
+  @IsArray()
+  headers?: APIHeaderDto[];
+
+  @IsOptional()
+  @IsString()
+  authToken?: string;
+
+  @IsOptional()
+  @IsString()
+  requestFormat?: string;
+
+  @IsOptional()
+  @IsString()
+  successField?: string;
+
+  @IsOptional()
+  @IsString()
+  successValue?: string;
+
+  @IsOptional()
+  @IsString()
+  failedValue?: string;
+
+  @IsOptional()
+  @IsString()
+  pendingValue?: string;
+
+  @IsOptional()
+  @IsString()
+  txnIdField?: string;
+
+  @IsOptional()
+  @IsString()
+  balanceField?: string;
+
+  @IsOptional()
+  @IsString()
+  messageField?: string;
 }
