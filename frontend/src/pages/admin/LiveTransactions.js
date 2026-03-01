@@ -206,7 +206,7 @@ const LiveTransactions = () => {
       </Card>
 
       <Dialog open={!!selectedTxn} onOpenChange={(open) => !open && setSelectedTxn(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Transaction Details</DialogTitle></DialogHeader>
           {selectedTxn && (
             <div className="space-y-3">
@@ -219,10 +219,15 @@ const LiveTransactions = () => {
                 <div className="p-3 bg-muted/50 rounded"><p className="text-xs text-muted-foreground">Amount</p><p className="font-bold text-accent">₹{selectedTxn.amount}</p></div>
                 <div className="p-3 bg-muted/50 rounded"><p className="text-xs text-muted-foreground">Commission</p><p className="font-medium">₹{selectedTxn.commission || 0}</p></div>
                 <div className="p-3 bg-muted/50 rounded"><p className="text-xs text-muted-foreground">Provider Ref</p><p className="font-mono text-xs">{selectedTxn.providerRef || '-'}</p></div>
-                <div className="p-3 bg-muted/50 rounded"><p className="text-xs text-muted-foreground">Response Code</p><p className="font-mono">{selectedTxn.responseCode || '-'}</p></div>
-                <div className="p-3 bg-muted/50 rounded"><p className="text-xs text-muted-foreground">Response Message</p><p className="text-sm">{selectedTxn.responseMessage || '-'}</p></div>
               </div>
               <div className="p-3 bg-muted/50 rounded"><p className="text-xs text-muted-foreground">Date</p><p className="text-sm">{new Date(selectedTxn.createdAt).toLocaleString()}</p></div>
+
+              {/* Transaction Timeline */}
+              <div className="border-t pt-4">
+                <p className="font-semibold text-sm mb-3">Transaction Timeline</p>
+                <TransactionTimeline txnId={selectedTxn.id} />
+              </div>
+
               {selectedTxn.status === 'failed' && (
                 <Button className="w-full bg-accent hover:bg-accent-hover" onClick={() => { handleRetry(selectedTxn.id); setSelectedTxn(null); }}>
                   <RotateCcw className="w-4 h-4 mr-2" /> Retry Transaction
