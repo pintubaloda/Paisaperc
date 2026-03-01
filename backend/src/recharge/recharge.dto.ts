@@ -1,4 +1,5 @@
 import { IsString, IsNumber, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateRechargeDto {
   @IsString()
@@ -7,6 +8,7 @@ export class CreateRechargeDto {
   @IsString()
   mobile: string;
 
+  @Type(() => Number)
   @IsNumber()
   amount: number;
 
