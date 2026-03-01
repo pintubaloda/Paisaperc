@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
-import { Smartphone, Home, Wallet, CreditCard, FileText, Settings, LogOut, Menu, Shield, FileCheck } from 'lucide-react';
+import { Smartphone, Home, Wallet, CreditCard, FileText, Settings, LogOut, Menu, Shield, FileCheck, BarChart3 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '../components/ui/sheet';
 
 const DashboardLayout = () => {
@@ -25,8 +25,11 @@ const DashboardLayout = () => {
   const navItems = [
     { icon: <Home className="w-5 h-5" />, label: 'Dashboard', path: '/dashboard' },
     { icon: <CreditCard className="w-5 h-5" />, label: 'Recharge', path: '/dashboard/recharge' },
+    { icon: <Wallet className="w-5 h-5" />, label: 'Wallet', path: '/dashboard/wallet' },
+    { icon: <BarChart3 className="w-5 h-5" />, label: 'Reports', path: '/dashboard/reports' },
     { icon: <FileCheck className="w-5 h-5" />, label: 'KYC', path: '/dashboard/kyc' },
     { icon: <Shield className="w-5 h-5" />, label: '2FA Security', path: '/dashboard/2fa' },
+    { icon: <Settings className="w-5 h-5" />, label: 'Settings', path: '/dashboard/settings' },
   ];
 
   const Sidebar = () => (
