@@ -1,106 +1,57 @@
-import axios from 'axios';
+// Barrel export - backward compatible
+// New code should import from specific service modules
+import apiClient from './apiClient';
+import authService from './authService';
+import rechargeService from './rechargeService';
+import walletService from './walletService';
+import adminService from './adminService';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
-export const api = axios.create({
-  baseURL: API,
-});
+const api = {
+  auth: authService,
+  admin: adminService,
+  recharge: rechargeService,
+  wallet: walletService,
+  client: apiClient,
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-export default {
-  auth: {
-    login: (data) => api.post('/auth/login', data),
-    register: (data) => api.post('/auth/register', data),
-  },
-  users: {
-    getMe: () => api.get('/users/me'),
-    getAll: () => api.get('/users'),
-    updateKyc: (data) => api.post('/users/kyc', data),
-    toggleStatus: (id) => api.patch(`/users/${id}/toggle-status`),
-    update: (id, data) => api.patch(`/users/${id}`, data),
-    adjustWallet: (id, data) => api.post(`/users/${id}/adjust-wallet`, data),
-  },
-  wallet: {
-    get: () => api.get('/wallet'),
-    getLedger: (limit = 100) => api.get(`/wallet/ledger?limit=${limit}`),
-    getAll: () => api.get('/wallet/all'),
-    getAllLedgers: (limit = 1000) => api.get(`/wallet/all-ledgers?limit=${limit}`),
-    getUserWallet: (userId) => api.get(`/wallet/user/${userId}`),
-    getUserLedger: (userId, limit = 100) => api.get(`/wallet/user/${userId}/ledger?limit=${limit}`),
-    getLedgerReport: (params = {}) => {
-      const qs = new URLSearchParams();
-      if (params.userId) qs.append('userId', params.userId);
-      if (params.startDate) qs.append('startDate', params.startDate);
-      if (params.endDate) qs.append('endDate', params.endDate);
-      if (params.limit) qs.append('limit', String(params.limit));
-      return api.get(`/wallet/ledger-report?${qs.toString()}`);
-    },
-  },
-  operators: {
-    getAll: () => api.get('/operators'),
-    create: (data) => api.post('/operators', data),
-    update: (id, data) => api.put(`/operators/${id}`, data),
-    delete: (id) => api.delete(`/operators/${id}`),
-  },
-  apiConfig: {
-    getAll: () => api.get('/api-config'),
-    getById: (id) => api.get(`/api-config/${id}`),
-    getCallbackUrl: (id) => api.get(`/api-config/${id}/callback-url`),
-    testApi: (id, data) => api.post(`/api-config/${id}/test`, data),
-    create: (data) => api.post('/api-config', data),
-    update: (id, data) => api.put(`/api-config/${id}`, data),
-    updateOperatorCodes: (id, operatorCodes) => api.put(`/api-config/${id}/operator-codes`, { operatorCodes }),
-    updateResponseMappings: (id, data) => api.put(`/api-config/${id}/response-mappings`, data),
-    delete: (id) => api.delete(`/api-config/${id}`),
-  },
-  commission: {
-    getAll: () => api.get('/commission'),
-    create: (data) => api.post('/commission', data),
-    update: (id, data) => api.put(`/commission/${id}`, data),
-    delete: (id) => api.delete(`/commission/${id}`),
-  },
-  routing: {
-    getAll: () => api.get('/routing'),
-    create: (data) => api.post('/routing', data),
-    update: (id, data) => api.put(`/routing/${id}`, data),
-    delete: (id) => api.delete(`/routing/${id}`),
-  },
-  recharge: {
-    create: (data) => api.post('/recharge', data),
-    getMy: (limit = 100) => api.get(`/recharge?limit=${limit}`),
-    getAll: (limit = 1000) => api.get(`/recharge/all?limit=${limit}`),
-    getById: (id) => api.get(`/recharge/${id}`),
-    getStats: () => api.get('/recharge/stats'),
-    retry: (id) => api.post(`/recharge/${id}/retry`),
-    checkStatus: (id) => api.post(`/recharge/${id}/check-status`),
-    sandboxTest: (data) => api.post('/recharge/sandbox-test', data),
-    getFailed: (limit = 100) => api.get(`/recharge/failed/list?limit=${limit}`),
-    getPending: (limit = 100) => api.get(`/recharge/pending/list?limit=${limit}`),
-  },
-  paymentRequests: {
-    create: (data, file) => {
-      const formData = new FormData();
-      Object.keys(data).forEach(key => formData.append(key, data[key]));
-      if (file) formData.append('proof', file);
-      return api.post('/payment-requests', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-    },
-    getMy: () => api.get('/payment-requests'),
-    getAll: () => api.get('/payment-requests/all'),
-    update: (id, data) => api.patch(`/payment-requests/${id}`, data),
-  },
-  reports: {
-    getDashboardStats: () => api.get('/reports/dashboard-stats'),
-    getAdminDashboard: () => api.get('/reports/admin-dashboard'),
-    getTransactions: (limit) => api.get(`/reports/transactions?limit=${limit || 100}`),
-    getLedger: (limit) => api.get(`/reports/ledger?limit=${limit || 100}`),
-  },
+  // Legacy compat - direct methods
+  login: (email, password) => apiClient.post('/auth/login', { email, password }),
+  register: (data) => apiClient.post('/auth/register', data),
+  getUsers: () => apiClient.get('/users'),
+  getOperators: () => apiClient.get('/operators'),
+  createOperator: (data) => apiClient.post('/operators', data),
+  updateOperator: (id, data) => apiClient.put(`/operators/${id}`, data),
+  deleteOperator: (id) => apiClient.delete(`/operators/${id}`),
+  getAPIs: () => apiClient.get('/api-config'),
+  createAPI: (data) => apiClient.post('/api-config', data),
+  updateAPI: (id, data) => apiClient.put(`/api-config/${id}`, data),
+  deleteAPI: (id) => apiClient.delete(`/api-config/${id}`),
+  testAPI: (data) => apiClient.post('/api-config/test-api', data),
+  getCommissions: () => apiClient.get('/commission'),
+  createCommission: (data) => apiClient.post('/commission', data),
+  updateCommission: (id, data) => apiClient.put(`/commission/${id}`, data),
+  deleteCommission: (id) => apiClient.delete(`/commission/${id}`),
+  getRouting: () => apiClient.get('/routing'),
+  createRouting: (data) => apiClient.post('/routing', data),
+  updateRouting: (id, data) => apiClient.put(`/routing/${id}`, data),
+  deleteRouting: (id) => apiClient.delete(`/routing/${id}`),
+  getStats: () => apiClient.get('/recharge/stats'),
+  getAllTransactions: (limit) => apiClient.get(`/recharge/all?limit=${limit || 1000}`),
+  getFailedTransactions: () => apiClient.get('/recharge/failed/list'),
+  getPendingTransactions: () => apiClient.get('/recharge/pending/list'),
+  getMyTransactions: () => apiClient.get('/recharge/my'),
+  doRecharge: (data) => apiClient.post('/recharge', data),
+  retryRecharge: (id) => apiClient.post(`/recharge/${id}/retry`),
+  checkStatus: (id) => apiClient.post(`/recharge/${id}/check-status`),
+  getWallet: () => apiClient.get('/wallet/my'),
+  getAllWallets: () => apiClient.get('/wallet/all'),
+  getLedgerReport: (params) => apiClient.post('/wallet/ledger-report', params),
+  updateUser: (id, data) => apiClient.put(`/users/${id}`, data),
+  adjustWallet: (id, data) => apiClient.post(`/users/${id}/adjust-wallet`, data),
+  sandboxTest: (data) => apiClient.post('/recharge/sandbox-test', data),
+  runSandboxTest: (data) => apiClient.post('/recharge/run-sandbox-test', data),
+  getReports: (limit) => apiClient.get(`/reports/ledger?limit=${limit || 100}`),
 };
+
+export default api;
