@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { APIMaster } from './api-master.schema';
 import { CreateAPIDto, UpdateAPIDto } from './api-config.dto';
+import { ServiceType } from '../common/enums';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
