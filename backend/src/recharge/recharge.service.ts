@@ -7,6 +7,7 @@ import { WalletService } from '../wallet/wallet.service';
 import { CommissionService } from '../commission/commission.service';
 import { RoutingService } from '../routing/routing.service';
 import { ApiConfigService } from '../api-config/api-config.service';
+import { UsersService } from '../users/users.service';
 import { TransactionStatus, UserRole } from '../common/enums';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -18,6 +19,7 @@ export class RechargeService {
     private commissionService: CommissionService,
     private routingService: RoutingService,
     private apiConfigService: ApiConfigService,
+    private usersService: UsersService,
   ) {}
 
   async createRecharge(userId: string, userRole: UserRole, createDto: CreateRechargeDto): Promise<any> {
@@ -110,20 +112,36 @@ export class RechargeService {
     };
   }
 
+  private async enrichWithUserNames(transactions: any[]): Promise<any[]> {
+    const userIds = [...new Set(transactions.map(t => t.userId))];
+    const userMap: Record<string, string> = {};
+    for (const uid of userIds) {
+      try {
+        const user = await this.usersService.findById(uid);
+        userMap[uid] = user?.name || uid;
+      } catch { userMap[uid] = uid; }
+    }
+    return transactions.map(t => {
+      const obj = typeof t.toObject === 'function' ? t.toObject() : { ...t };
+      delete obj._id;
+      delete obj.__v;
+      return { ...obj, userName: userMap[obj.userId] || obj.userId };
+    });
+  }
+
   async getTransactions(userId: string, limit: number = 100): Promise<any[]> {
-    return this.rechargeModel
-      .find({ userId })
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .select('-_id -__v');
+    const txns = await this.rechargeModel.find({ userId }).sort({ createdAt: -1 }).limit(limit).lean();
+    return txns.map(t => {
+      const obj = { ...t } as any;
+      delete obj._id;
+      delete obj.__v;
+      return obj;
+    });
   }
 
   async getAllTransactions(limit: number = 1000): Promise<any[]> {
-    return this.rechargeModel
-      .find()
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .select('-_id -__v');
+    const txns = await this.rechargeModel.find().sort({ createdAt: -1 }).limit(limit).lean();
+    return this.enrichWithUserNames(txns);
   }
 
   async getTransactionById(id: string): Promise<any> {
@@ -167,16 +185,10 @@ export class RechargeService {
 
   async retryFailedTransaction(txnId: string): Promise<any> {
     const transaction = await this.rechargeModel.findOne({ id: txnId });
-    if (!transaction) {
-      throw new Error('Transaction not found');
-    }
-
-    if (transaction.status !== TransactionStatus.FAILED) {
-      throw new Error('Only failed transactions can be retried');
-    }
+    if (!transaction) throw new BadRequestException('Transaction not found');
+    if (transaction.status !== TransactionStatus.FAILED) throw new BadRequestException('Only failed transactions can be retried');
 
     transaction.status = TransactionStatus.PENDING;
-    transaction.responseCode = null;
     transaction.responseMessage = 'Retrying transaction';
     await transaction.save();
 
@@ -194,26 +206,39 @@ export class RechargeService {
   }
 
   async checkTransactionStatus(txnId: string): Promise<any> {
-    const transaction = await this.rechargeModel.findOne({ id: txnId }).select('-_id -__v');
-    if (!transaction) {
-      throw new Error('Transaction not found');
-    }
-    return transaction;
+    return this.rechargeModel.findOne({ id: txnId }).select('-_id -__v');
   }
 
   async getFailedTransactions(limit: number = 100): Promise<any[]> {
-    return this.rechargeModel
-      .find({ status: TransactionStatus.FAILED })
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .select('-_id -__v');
+    const txns = await this.rechargeModel.find({ status: TransactionStatus.FAILED }).sort({ createdAt: -1 }).limit(limit).lean();
+    return this.enrichWithUserNames(txns);
   }
 
   async getPendingTransactions(limit: number = 100): Promise<any[]> {
-    return this.rechargeModel
-      .find({ status: TransactionStatus.PENDING })
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .select('-_id -__v');
+    const txns = await this.rechargeModel.find({ status: TransactionStatus.PENDING }).sort({ createdAt: -1 }).limit(limit).lean();
+    return this.enrichWithUserNames(txns);
+  }
+
+  async bulkMockRecharge(userId: string, userRole: UserRole, count: number, operators: string[]): Promise<any> {
+    const results = { total: count, success: 0, failed: 0, errors: 0, totalDebited: 0, totalCommission: 0 };
+    
+    for (let i = 0; i < count; i++) {
+      const opId = operators[i % operators.length];
+      const amount = [99, 149, 199, 249, 299][Math.floor(Math.random() * 5)];
+      const mobile = `98${String(Math.floor(Math.random() * 100000000)).padStart(8, '0')}`;
+      
+      try {
+        const txn = await this.createRecharge(userId, userRole, { operatorId: opId, mobile, amount });
+        if (txn.status === 'success') results.success++;
+        else results.failed++;
+        results.totalDebited += amount;
+        results.totalCommission += txn.commission || 0;
+      } catch (err) {
+        results.errors++;
+        if (err.message === 'Insufficient balance') break;
+      }
+    }
+    
+    return results;
   }
 }
