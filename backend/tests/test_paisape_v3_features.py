@@ -11,7 +11,7 @@ import requests
 import os
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://instant-topup-5.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://paisape-recharge-1.preview.emergentagent.com')
 
 # Provided credentials
 ADMIN_EMAIL = "admin@test.com"
