@@ -33,10 +33,7 @@ const DashboardLayout = () => {
   const Sidebar = () => (
     <div className="h-full flex flex-col bg-primary text-white p-6">
       <div className="flex items-center space-x-2 mb-8">
-        <div className="w-10 h-10 bg-accent rounded-md flex items-center justify-center">
-          <Smartphone className="w-6 h-6" />
-        </div>
-        <span className="text-xl font-heading font-bold">PaisaPe</span>
+        <img src="/images/paisape-logo.png" alt="PaisaPe" className="h-10" />
       </div>
       <nav className="flex-1 space-y-2">
         {navItems.map((item) => (
