@@ -116,6 +116,7 @@ export class RechargeService {
       isSandbox,
     });
     await transaction.save();
+    await this.txnEvents.log(txnId, 'txn_created', `Transaction created for ${createDto.mobile} | ₹${createDto.amount} | ${operatorName}`, 'pending', { mobile: createDto.mobile, operator: operatorName });
 
     // STEP 2: Process via API
     let apiResult: {
