@@ -78,7 +78,7 @@ export class WalletService {
       }
     }
 
-    const entries = await this.ledgerModel.find(query).sort({ createdAt: 1 }).limit(filters.limit || 5000).lean();
+    const entries = await this.ledgerModel.find(query).sort({ createdAt: 1 }).limit(filters.limit || 5000).lean() as any[];
 
     // Group by txnId to consolidate double entries
     const txnMap = new Map<string, any>();
@@ -88,7 +88,7 @@ export class WalletService {
         txnMap.set(key, {
           userId: entry.userId,
           txnId: entry.txnId,
-          dateTime: entry.createdAt,
+          dateTime: (entry as any).createdAt,
           totalDebit: 0,
           totalCredit: 0,
           remark: entry.remark,
@@ -102,7 +102,7 @@ export class WalletService {
       const mobileMatch = entry.remark?.match(/for\s+(\d{10})/);
       if (mobileMatch) rec.mobile = mobileMatch[1];
       // Use earliest date
-      if (new Date(entry.createdAt) < new Date(rec.dateTime)) rec.dateTime = entry.createdAt;
+      if (new Date((entry as any).createdAt) < new Date(rec.dateTime)) rec.dateTime = (entry as any).createdAt;
       // Combine remarks
       if (!rec.remark.includes(entry.remark) && entry.remark !== rec.remark) {
         rec.remark = entry.remark;
