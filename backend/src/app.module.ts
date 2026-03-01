@@ -19,6 +19,9 @@ import { KycModule } from './kyc/kyc.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { QueueModule } from './queue/queue.module';
 import { ReconciliationModule } from './reconciliation/reconciliation.module';
+import { ReportsModule } from './reports/reports.module';
+import { OperatorApiMappingModule } from './operator-api-mapping/operator-api-mapping.module';
+import { PaymentRequestsModule } from './payment-requests/payment-requests.module';
 
 @Module({
   imports: [
@@ -41,6 +44,9 @@ import { ReconciliationModule } from './reconciliation/reconciliation.module';
     GatewayModule,
     QueueModule,
     ReconciliationModule,
+    ReportsModule,
+    OperatorApiMappingModule,
+    PaymentRequestsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
