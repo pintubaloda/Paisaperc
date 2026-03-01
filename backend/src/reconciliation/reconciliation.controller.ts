@@ -1,4 +1,5 @@
-import { Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ReconciliationService } from './reconciliation.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -21,5 +22,16 @@ export class ReconciliationController {
   @Roles(UserRole.ADMIN)
   async run() {
     return this.reconciliationService.runReconciliation();
+  }
+
+  @Post('import')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @UseInterceptors(FileInterceptor('file'))
+  async importReport(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      return { error: 'No file uploaded' };
+    }
+    return this.reconciliationService.importProviderReport(file.buffer, file.originalname);
   }
 }
