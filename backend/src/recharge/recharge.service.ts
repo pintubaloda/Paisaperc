@@ -220,7 +220,7 @@ export class RechargeService {
     apiId: string,
     dto: CreateRechargeDto,
     txnId: string,
-  ): Promise<{ status: string; providerRef?: string; message: string }> {
+  ): Promise<{ status: string; providerRef?: string; message: string; apiRequest?: string; apiResponse?: string }> {
     try {
       const apiConfig = await this.apiConfigService.findById(apiId);
       const cfg = apiConfig.toObject();
@@ -244,6 +244,8 @@ export class RechargeService {
         headers[h.key] = this.substituteVars(h.value, vars);
       }
 
+      const apiRequest = JSON.stringify({ url, method: cfg.method, params, headers: Object.keys(headers) });
+
       let response: any;
       const method = cfg.method;
       const timeout = 30000;
@@ -263,9 +265,11 @@ export class RechargeService {
         response = await axios.post(url, params, { headers, timeout });
       }
 
-      return this.parseProviderResponse(cfg, response.data);
+      const apiResponse = JSON.stringify(response.data);
+      const parsed = this.parseProviderResponse(cfg, response.data);
+      return { ...parsed, apiRequest, apiResponse };
     } catch (err) {
-      return { status: 'failed', message: `API Error: ${err.message}` };
+      return { status: 'failed', message: `API Error: ${err.message}`, apiRequest: '', apiResponse: '' };
     }
   }
 
