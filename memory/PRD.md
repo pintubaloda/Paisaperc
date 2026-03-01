@@ -133,6 +133,18 @@ Build a "PaisaPe" multi-mobile/DTH recharge and bill payment software with admin
 - `GET /api/customer-api/balance` - Reseller balance
 - `POST /api/two-factor/enable` - Enable 2FA
 
+### Security Hardening (March 1, 2026)
+- **Admin registration blocked** — cannot create admin via `/api/auth/register`
+- **Strong JWT secret** — 64-char hex random secret (no default fallback)
+- **Helmet security headers** — XSS protection, content-type sniffing, HSTS, CORP, COOP
+- **Rate limiting** — Global 100 req/min, Login 10/min, Register 5/min, Customer API 60/min
+- **CORS restricted** — only allowed from configured frontend origin
+- **OTP not leaked** — removed OTP value from `/send-otp` response
+- **User data sanitized** — `password` and `apiSecret` excluded from all API responses
+- **Webhook replay protection** — rejects timestamps older than 5 minutes
+- **IP whitelist** — customer API enforces IP restrictions per user
+- **Callback token validation** — webhook endpoints validate provider tokens
+
 ## P2 - Remaining/Future Tasks
 - File upload for KYC documents (currently number-only)
 - Email/SMS notifications for low balance alerts
