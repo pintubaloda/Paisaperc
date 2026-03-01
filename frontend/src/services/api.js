@@ -13,8 +13,8 @@ const api = {
   users: {
     getAll: () => apiClient.get('/users'),
     getMe: () => apiClient.get('/users/me'),
-    update: (id, data) => apiClient.put(`/users/${id}`, data),
-    toggleStatus: (id) => apiClient.put(`/users/${id}`, { isActive: undefined }),
+    update: (id, data) => apiClient.patch(`/users/${id}`, data),
+    toggleStatus: (id) => apiClient.patch(`/users/${id}/toggle-status`),
     adjustWallet: (id, data) => apiClient.post(`/users/${id}/adjust-wallet`, data),
   },
 
@@ -26,11 +26,11 @@ const api = {
   },
 
   wallet: {
-    get: () => apiClient.get('/wallet/my'),
+    get: () => apiClient.get('/wallet'),
     getAll: () => apiClient.get('/wallet/all'),
     getLedger: (limit) => apiClient.get(`/wallet/ledger?limit=${limit || 50}`),
-    getUserLedger: (userId, limit) => apiClient.get(`/wallet/ledger/${userId}?limit=${limit || 50}`),
-    getLedgerReport: (params) => apiClient.post('/wallet/ledger-report', params),
+    getUserLedger: (userId, limit) => apiClient.get(`/wallet/user/${userId}/ledger?limit=${limit || 50}`),
+    getLedgerReport: (params) => apiClient.get(`/wallet/ledger-report?userId=${params?.userId || ''}&startDate=${params?.startDate || ''}&endDate=${params?.endDate || ''}&limit=${params?.limit || 5000}`),
   },
 
   // Direct methods (backward compat for any remaining usage)
