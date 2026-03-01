@@ -118,4 +118,9 @@ export class UsersService {
     const wallet = await this.walletService.getWallet(userId);
     return { message: `Wallet ${type} of ${amount} successful`, balance: wallet.balance };
   }
+
+  async getWalletBalance(userId: string): Promise<number> {
+    const wallet = await this.walletService.getWallet(userId);
+    return wallet.balance;
+  }
 }
