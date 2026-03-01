@@ -6,6 +6,7 @@ import { RechargeTransaction, RechargeTransactionSchema } from './recharge.schem
 import { WalletModule } from '../wallet/wallet.module';
 import { CommissionModule } from '../commission/commission.module';
 import { RoutingModule } from '../routing/routing.module';
+import { ApiConfigModule } from '../api-config/api-config.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { RoutingModule } from '../routing/routing.module';
     WalletModule,
     CommissionModule,
     RoutingModule,
+    ApiConfigModule,
   ],
   controllers: [RechargeController],
   providers: [RechargeService],
