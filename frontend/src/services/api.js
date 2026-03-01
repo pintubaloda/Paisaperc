@@ -1,21 +1,39 @@
-// Barrel export - backward compatible
-// New code should import from specific service modules
 import apiClient from './apiClient';
 import authService from './authService';
 import rechargeService from './rechargeService';
-import walletService from './walletService';
 import adminService from './adminService';
-
-const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const api = {
   auth: authService,
   admin: adminService,
   recharge: rechargeService,
-  wallet: walletService,
   client: apiClient,
 
-  // Legacy compat - direct methods
+  // Namespaced sub-objects used across all pages
+  users: {
+    getAll: () => apiClient.get('/users'),
+    getMe: () => apiClient.get('/users/me'),
+    update: (id, data) => apiClient.put(`/users/${id}`, data),
+    toggleStatus: (id) => apiClient.put(`/users/${id}`, { isActive: undefined }),
+    adjustWallet: (id, data) => apiClient.post(`/users/${id}/adjust-wallet`, data),
+  },
+
+  operators: {
+    getAll: () => apiClient.get('/operators'),
+    create: (data) => apiClient.post('/operators', data),
+    update: (id, data) => apiClient.put(`/operators/${id}`, data),
+    delete: (id) => apiClient.delete(`/operators/${id}`),
+  },
+
+  wallet: {
+    get: () => apiClient.get('/wallet/my'),
+    getAll: () => apiClient.get('/wallet/all'),
+    getLedger: (limit) => apiClient.get(`/wallet/ledger?limit=${limit || 50}`),
+    getUserLedger: (userId, limit) => apiClient.get(`/wallet/ledger/${userId}?limit=${limit || 50}`),
+    getLedgerReport: (params) => apiClient.post('/wallet/ledger-report', params),
+  },
+
+  // Direct methods (backward compat for any remaining usage)
   login: (email, password) => apiClient.post('/auth/login', { email, password }),
   register: (data) => apiClient.post('/auth/register', data),
   getUsers: () => apiClient.get('/users'),
@@ -38,11 +56,8 @@ const api = {
   deleteRouting: (id) => apiClient.delete(`/routing/${id}`),
   getStats: () => apiClient.get('/recharge/stats'),
   getAllTransactions: (limit) => apiClient.get(`/recharge/all?limit=${limit || 1000}`),
-  getFailedTransactions: () => apiClient.get('/recharge/failed/list'),
-  getPendingTransactions: () => apiClient.get('/recharge/pending/list'),
   getMyTransactions: () => apiClient.get('/recharge/my'),
   doRecharge: (data) => apiClient.post('/recharge', data),
-  retryRecharge: (id) => apiClient.post(`/recharge/${id}/retry`),
   checkStatus: (id) => apiClient.post(`/recharge/${id}/check-status`),
   getWallet: () => apiClient.get('/wallet/my'),
   getAllWallets: () => apiClient.get('/wallet/all'),
@@ -51,7 +66,6 @@ const api = {
   adjustWallet: (id, data) => apiClient.post(`/users/${id}/adjust-wallet`, data),
   sandboxTest: (data) => apiClient.post('/recharge/sandbox-test', data),
   runSandboxTest: (data) => apiClient.post('/recharge/run-sandbox-test', data),
-  getReports: (limit) => apiClient.get(`/reports/ledger?limit=${limit || 100}`),
 };
 
 export default api;
