@@ -3,6 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { TwoFactorAuth } from './two-factor.schema';
 import { v4 as uuidv4 } from 'uuid';
+import * as speakeasy from 'speakeasy';
+import * as QRCode from 'qrcode';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -12,76 +14,96 @@ export class TwoFactorService {
   ) {}
 
   async enable2FA(userId: string): Promise<any> {
-    const secret = this.generateSecret();
+    const secret = speakeasy.generateSecret({
+      name: 'PaisaPe',
+      issuer: 'PaisaPe',
+      length: 20,
+    });
+
     const backupCodes = this.generateBackupCodes();
 
     let twoFactor = await this.twoFactorModel.findOne({ userId });
-    
+
     if (twoFactor) {
       twoFactor.isEnabled = true;
-      twoFactor.secret = secret;
+      twoFactor.secret = secret.base32;
       twoFactor.backupCodes = backupCodes;
+      twoFactor.isVerified = false;
       await twoFactor.save();
     } else {
       twoFactor = new this.twoFactorModel({
         id: uuidv4(),
         userId,
         isEnabled: true,
-        secret,
+        secret: secret.base32,
         backupCodes,
+        isVerified: false,
       });
       await twoFactor.save();
     }
 
+    const otpauthUrl = speakeasy.otpauthURL({
+      secret: secret.ascii,
+      label: `PaisaPe:${userId}`,
+      issuer: 'PaisaPe',
+    });
+
+    const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
+
     return {
-      secret,
+      secret: secret.base32,
       backupCodes,
-      qrCodeUrl: this.generateQRCodeUrl(secret),
+      qrCodeUrl: qrCodeDataUrl,
+      otpauthUrl,
     };
   }
 
   async disable2FA(userId: string): Promise<void> {
-    await this.twoFactorModel.updateOne({ userId }, { isEnabled: false });
+    await this.twoFactorModel.updateOne({ userId }, { isEnabled: false, isVerified: false });
   }
 
   async verify2FA(userId: string, code: string): Promise<boolean> {
     const twoFactor = await this.twoFactorModel.findOne({ userId, isEnabled: true });
     if (!twoFactor) return false;
 
-    // Mock verification - in production use speakeasy or similar
-    const isValid = code === this.generateMockOTP(twoFactor.secret);
-    
+    const isValid = speakeasy.totp.verify({
+      secret: twoFactor.secret,
+      encoding: 'base32',
+      token: code,
+      window: 2,
+    });
+
+    if (isValid) {
+      if (!twoFactor.isVerified) {
+        twoFactor.isVerified = true;
+        await twoFactor.save();
+      }
+      return true;
+    }
+
     // Check backup codes
-    if (!isValid && twoFactor.backupCodes.includes(code)) {
+    if (twoFactor.backupCodes.includes(code)) {
       twoFactor.backupCodes = twoFactor.backupCodes.filter(c => c !== code);
       await twoFactor.save();
       return true;
     }
 
-    return isValid;
+    return false;
   }
 
   async getStatus(userId: string): Promise<any> {
     const twoFactor = await this.twoFactorModel.findOne({ userId }).select('-_id -__v -secret');
-    return twoFactor || { isEnabled: false };
-  }
-
-  private generateSecret(): string {
-    return crypto.randomBytes(20).toString('hex');
+    if (!twoFactor) return { isEnabled: false, isVerified: false, backupCodesRemaining: 0 };
+    return {
+      isEnabled: twoFactor.isEnabled,
+      isVerified: twoFactor.isVerified || false,
+      backupCodesRemaining: (twoFactor.backupCodes || []).length,
+    };
   }
 
   private generateBackupCodes(): string[] {
-    return Array.from({ length: 10 }, () => 
+    return Array.from({ length: 10 }, () =>
       crypto.randomBytes(4).toString('hex').toUpperCase()
     );
-  }
-
-  private generateQRCodeUrl(secret: string): string {
-    return `otpauth://totp/PaisaPe?secret=${secret}`;
-  }
-
-  private generateMockOTP(secret: string): string {
-    // Mock OTP generation - returns last 6 chars of secret
-    return secret.slice(-6);
   }
 }
