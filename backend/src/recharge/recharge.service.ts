@@ -6,6 +6,7 @@ import { CreateRechargeDto } from './recharge.dto';
 import { WalletService } from '../wallet/wallet.service';
 import { CommissionService } from '../commission/commission.service';
 import { RoutingService } from '../routing/routing.service';
+import { ApiConfigService } from '../api-config/api-config.service';
 import { TransactionStatus, UserRole } from '../common/enums';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -16,6 +17,7 @@ export class RechargeService {
     private walletService: WalletService,
     private commissionService: CommissionService,
     private routingService: RoutingService,
+    private apiConfigService: ApiConfigService,
   ) {}
 
   async createRecharge(userId: string, userRole: UserRole, createDto: CreateRechargeDto): Promise<any> {
@@ -25,7 +27,7 @@ export class RechargeService {
       throw new BadRequestException('Insufficient balance');
     }
 
-    const apiId = await this.routingService.findBestAPI(userRole, createDto.operatorId, createDto.amount);
+    const apiIds = await this.routingService.findBestAPIs(userRole, createDto.operatorId, createDto.amount);
     
     const commission = await this.commissionService.calculateCommission(
       userRole,
@@ -51,19 +53,43 @@ export class RechargeService {
       );
     }
 
+    let finalStatus = TransactionStatus.FAILED;
+    let finalApiId = apiIds.length > 0 ? apiIds[0] : null;
+    let providerRef = null;
+    let responseCode = '99';
+    let responseMessage = 'No API available';
+    let attempts = [];
+
+    for (const apiId of apiIds) {
+      try {
+        const result = this.simulateApiCall(apiId);
+        attempts.push({ apiId, status: result.success ? 'success' : 'failed', message: result.message });
+        if (result.success) {
+          finalStatus = TransactionStatus.SUCCESS;
+          finalApiId = apiId;
+          providerRef = result.providerRef;
+          responseCode = '00';
+          responseMessage = result.message;
+          break;
+        }
+      } catch (err) {
+        attempts.push({ apiId, status: 'error', message: err.message });
+      }
+    }
+
     const transaction = new this.rechargeModel({
       id: txnId,
       userId,
       operatorId: createDto.operatorId,
-      apiId,
+      apiId: finalApiId,
       mobile: createDto.mobile,
       amount: createDto.amount,
       commission,
-      status: TransactionStatus.SUCCESS,
+      status: finalStatus,
       circle: createDto.circle,
-      responseCode: '00',
-      responseMessage: 'Mock recharge successful',
-      providerRef: `MOCK${Date.now()}`,
+      responseCode,
+      responseMessage,
+      providerRef: providerRef || `MOCK${Date.now()}`,
     });
 
     await transaction.save();
@@ -72,7 +98,16 @@ export class RechargeService {
     delete obj._id;
     delete obj.__v;
     
-    return obj;
+    return { ...obj, attempts };
+  }
+
+  private simulateApiCall(apiId: string): { success: boolean; message: string; providerRef?: string } {
+    const success = Math.random() > 0.3;
+    return {
+      success,
+      message: success ? 'Recharge successful' : 'API provider returned failure',
+      providerRef: success ? `REF${Date.now()}` : undefined,
+    };
   }
 
   async getTransactions(userId: string, limit: number = 100): Promise<any[]> {
@@ -92,8 +127,7 @@ export class RechargeService {
   }
 
   async getTransactionById(id: string): Promise<any> {
-    const txn = await this.rechargeModel.findOne({ id }).select('-_id -__v');
-    return txn;
+    return this.rechargeModel.findOne({ id }).select('-_id -__v');
   }
 
   async getStats(): Promise<any> {
@@ -103,7 +137,6 @@ export class RechargeService {
     const volumeResult = await this.rechargeModel.aggregate([
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ]);
-    
     const totalVolume = volumeResult.length > 0 ? volumeResult[0].total : 0;
     
     const today = new Date();
@@ -117,11 +150,9 @@ export class RechargeService {
       { $match: { createdAt: { $gte: today } } },
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ]);
-    
     const todayVolume = todayVolumeResult.length > 0 ? todayVolumeResult[0].total : 0;
     
     const pendingCount = await this.rechargeModel.countDocuments({ status: TransactionStatus.PENDING });
-    
     const successRate = totalTransactions > 0 ? (successTransactions / totalTransactions) * 100 : 0;
     
     return {
@@ -144,21 +175,17 @@ export class RechargeService {
       throw new Error('Only failed transactions can be retried');
     }
 
-    // Update status to pending
     transaction.status = TransactionStatus.PENDING;
     transaction.responseCode = null;
     transaction.responseMessage = 'Retrying transaction';
     await transaction.save();
 
-    // Simulate retry - in production, call actual API
-    setTimeout(async () => {
-      const success = Math.random() > 0.3; // 70% success rate
-      transaction.status = success ? TransactionStatus.SUCCESS : TransactionStatus.FAILED;
-      transaction.responseCode = success ? '00' : '01';
-      transaction.responseMessage = success ? 'Transaction successful after retry' : 'Retry failed';
-      transaction.providerRef = success ? `RETRY${Date.now()}` : transaction.providerRef;
-      await transaction.save();
-    }, 2000);
+    const success = Math.random() > 0.3;
+    transaction.status = success ? TransactionStatus.SUCCESS : TransactionStatus.FAILED;
+    transaction.responseCode = success ? '00' : '01';
+    transaction.responseMessage = success ? 'Transaction successful after retry' : 'Retry failed';
+    transaction.providerRef = success ? `RETRY${Date.now()}` : transaction.providerRef;
+    await transaction.save();
 
     const obj = transaction.toObject();
     delete obj._id;
