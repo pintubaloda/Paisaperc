@@ -147,7 +147,8 @@ const LiveTransactions = () => {
                   <SelectItem value="success">Success</SelectItem>
                   <SelectItem value="failed">Failed</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="init">Init</SelectItem>
+                  <SelectItem value="dispute">Dispute</SelectItem>
+                  <SelectItem value="refunded">Refunded</SelectItem>
                 </SelectContent>
               </Select>
             </div>
