@@ -148,6 +148,9 @@ const APIConfigurationEnhanced = () => {
       balanceField: apiItem.balanceField || 'balance',
       messageField: apiItem.messageField || 'status_msg',
       isActive: apiItem.isActive,
+      statusCheckEndpoint: apiItem.statusCheckEndpoint || '',
+      statusCheckMethod: apiItem.statusCheckMethod || 'GET',
+      statusCheckParams: apiItem.statusCheckParams || [],
     });
     setShowAPIDialog(true);
   };
