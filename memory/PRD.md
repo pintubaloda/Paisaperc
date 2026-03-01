@@ -77,6 +77,14 @@ Build a "PaisaPe" multi-mobile/DTH recharge and bill payment software with admin
 - **User-specific** - notifications targeted by userId
 - **Admin broadcasts** - admin-specific events
 
+### Transaction Timeline
+- **Visual lifecycle view** for every transaction
+- Events tracked: wallet_debit → txn_created → routing → api_call → api_response → txn_success/failed/pending → commission_credit/refund → status_check → webhook_received → dispute_created → admin_status_change
+- **Color-coded nodes** with icons for each event type
+- **Metadata tags** showing amounts, API IDs, operator names
+- **Timestamps** for complete audit trail
+- Accessible from Live Transactions detail dialog and Pending Report retry dialog
+
 ### Admin Panel Pages
 1. Dashboard (stats overview)
 2. User Management (wallet balance, actions)
