@@ -40,4 +40,25 @@ export class RechargeController {
   async getTransaction(@Param('id') id: string) {
     return this.rechargeService.getTransactionById(id);
   }
+
+  @Post(':id/retry')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async retryTransaction(@Param('id') id: string) {
+    return this.rechargeService.retryFailedTransaction(id);
+  }
+
+  @Get('failed/list')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async getFailedTransactions(@Query('limit') limit?: string) {
+    return this.rechargeService.getFailedTransactions(limit ? parseInt(limit) : 100);
+  }
+
+  @Get('pending/list')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async getPendingTransactions(@Query('limit') limit?: string) {
+    return this.rechargeService.getPendingTransactions(limit ? parseInt(limit) : 100);
+  }
 }
