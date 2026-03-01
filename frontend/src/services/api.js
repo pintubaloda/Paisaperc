@@ -40,8 +40,11 @@ export default {
   apiConfig: {
     getAll: () => api.get('/api-config'),
     getById: (id) => api.get(`/api-config/${id}`),
+    getCallbackUrl: (id) => api.get(`/api-config/${id}/callback-url`),
     create: (data) => api.post('/api-config', data),
     update: (id, data) => api.put(`/api-config/${id}`, data),
+    updateOperatorCodes: (id, operatorCodes) => api.put(`/api-config/${id}/operator-codes`, { operatorCodes }),
+    updateResponseMappings: (id, data) => api.put(`/api-config/${id}/response-mappings`, data),
     delete: (id) => api.delete(`/api-config/${id}`),
   },
   commission: {
