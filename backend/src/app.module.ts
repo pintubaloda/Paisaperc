@@ -12,6 +12,8 @@ import { RechargeModule } from './recharge/recharge.module';
 import { PaymentRequestsModule } from './payment-requests/payment-requests.module';
 import { ReportsModule } from './reports/reports.module';
 import { CustomerApiModule } from './customer-api/customer-api.module';
+import { OperatorAPIMappingModule } from './operator-api-mapping/operator-api-mapping.module';
+import { TwoFactorModule } from './two-factor/two-factor.module';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { CustomerApiModule } from './customer-api/customer-api.module';
     PaymentRequestsModule,
     ReportsModule,
     CustomerApiModule,
+    OperatorAPIMappingModule,
+    TwoFactorModule,
   ],
 })
 export class AppModule {}
