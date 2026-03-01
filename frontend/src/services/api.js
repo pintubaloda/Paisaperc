@@ -39,6 +39,7 @@ export default {
   },
   apiConfig: {
     getAll: () => api.get('/api-config'),
+    getById: (id) => api.get(`/api-config/${id}`),
     create: (data) => api.post('/api-config', data),
     update: (id, data) => api.put(`/api-config/${id}`, data),
     delete: (id) => api.delete(`/api-config/${id}`),
@@ -53,12 +54,22 @@ export default {
     create: (data) => api.post('/routing', data),
     delete: (id) => api.delete(`/routing/${id}`),
   },
+  operatorApiMapping: {
+    getAll: () => api.get('/operator-api-mapping'),
+    getByOperator: (operatorId) => api.get(`/operator-api-mapping/operator/${operatorId}`),
+    create: (data) => api.post('/operator-api-mapping', data),
+    update: (id, data) => api.put(`/operator-api-mapping/${id}`, data),
+    delete: (id) => api.delete(`/operator-api-mapping/${id}`),
+  },
   recharge: {
     create: (data) => api.post('/recharge', data),
     getMy: (limit = 100) => api.get(`/recharge?limit=${limit}`),
     getAll: (limit = 1000) => api.get(`/recharge/all?limit=${limit}`),
     getById: (id) => api.get(`/recharge/${id}`),
     getStats: () => api.get('/recharge/stats'),
+    retry: (id) => api.post(`/recharge/${id}/retry`),
+    getFailed: (limit = 100) => api.get(`/recharge/failed/list?limit=${limit}`),
+    getPending: (limit = 100) => api.get(`/recharge/pending/list?limit=${limit}`),
   },
   paymentRequests: {
     create: (data, file) => {
@@ -78,5 +89,11 @@ export default {
     getAdminDashboard: () => api.get('/reports/admin-dashboard'),
     getTransactions: (limit) => api.get(`/reports/transactions?limit=${limit || 100}`),
     getLedger: (limit) => api.get(`/reports/ledger?limit=${limit || 100}`),
+  },
+  twoFactor: {
+    enable: () => api.post('/two-factor/enable'),
+    disable: () => api.delete('/two-factor/disable'),
+    verify: (code) => api.post('/two-factor/verify', { code }),
+    getStatus: () => api.get('/two-factor/status'),
   },
 };
