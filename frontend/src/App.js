@@ -19,6 +19,8 @@ import APIConfigurationEnhanced from './pages/admin/APIConfigurationEnhanced';
 import CommissionManagement from './pages/admin/CommissionManagement';
 import RoutingRules from './pages/admin/RoutingRules';
 import LiveTransactions from './pages/admin/LiveTransactions';
+import SandboxTest from './pages/admin/SandboxTest';
+import LedgerReport from './pages/admin/LedgerReport';
 import AdvancedReports from './pages/admin/AdvancedReports';
 import './App.css';
 
@@ -32,7 +34,6 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           
-          {/* User Dashboard */}
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="recharge" element={<RechargePage />} />
@@ -41,7 +42,6 @@ function App() {
             <Route path="settings" element={<UserSettings />} />
           </Route>
           
-          {/* Admin Dashboard */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
@@ -51,6 +51,8 @@ function App() {
             <Route path="commission" element={<CommissionManagement />} />
             <Route path="routing" element={<RoutingRules />} />
             <Route path="transactions" element={<LiveTransactions />} />
+            <Route path="sandbox" element={<SandboxTest />} />
+            <Route path="ledger" element={<LedgerReport />} />
             <Route path="reports" element={<AdvancedReports />} />
           </Route>
           
