@@ -7,8 +7,6 @@ import { Request } from 'express';
 
 @Controller('customer-api')
 @Throttle({ default: { limit: 60, ttl: 60000 } })
-
-@Controller('customer-api')
 export class CustomerApiController {
   constructor(
     private rechargeService: RechargeService,
