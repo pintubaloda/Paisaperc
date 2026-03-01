@@ -40,7 +40,7 @@ function App() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="operators" element={<OperatorsManagement />} />
-            <Route path="api-config" element={<APIConfiguration />} />
+            <Route path="api-config" element={<APIConfigurationEnhanced />} />
             <Route path="commission" element={<CommissionManagement />} />
             <Route path="reports" element={<AdvancedReports />} />
           </Route>
