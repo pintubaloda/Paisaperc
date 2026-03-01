@@ -130,19 +130,24 @@ export class RechargeService {
 
     if (isSandbox) {
       apiResult = this.sandboxProcess();
+      await this.txnEvents.log(txnId, 'api_call', `Sandbox API called → ${apiResult.status}`, apiResult.status, { sandbox: true });
     } else {
       const apiIds = await this.routingService.findBestAPIs(
         userRole,
         createDto.operatorId,
         createDto.amount,
       );
+      await this.txnEvents.log(txnId, 'routing', `Routing resolved ${apiIds.length} API(s) for processing`, 'pending', { apiCount: apiIds.length });
       for (const apiId of apiIds) {
         try {
+          await this.txnEvents.log(txnId, 'api_call', `Calling provider API: ${apiId}`, 'pending', { apiId });
           const result = await this.callProviderAPI(apiId, createDto, txnId);
           apiResult = { ...result, apiId };
+          await this.txnEvents.log(txnId, 'api_response', `Provider responded: ${result.status} — ${result.message}`, result.status, { apiId, providerRef: result.providerRef });
           if (result.status === 'success' || result.status === 'pending') break;
         } catch (err) {
           apiResult = { status: 'failed', message: err.message, apiId };
+          await this.txnEvents.log(txnId, 'api_error', `API ${apiId} error: ${err.message}`, 'failed', { apiId });
         }
       }
     }
