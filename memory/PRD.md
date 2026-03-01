@@ -8,64 +8,131 @@ Build a "PaisaPe" multi-mobile/DTH recharge and bill payment software with admin
 - **Frontend**: React with Shadcn UI, TailwindCSS
 - **Database**: MongoDB with Mongoose ODM
 - **Auth**: JWT-based authentication
+- **WebSocket**: Socket.IO for real-time notifications
+- **Queue**: MongoDB-based message queue
 
 ## Demo Credentials
 - Admin: `admin@test.com` / `password123`
 - Retailer: `retailer@test.com` / `password123`
 
-## What's Implemented
+## What's Implemented (as of March 1, 2026)
 
-### Backend
-- Auth (JWT login/register)
-- Users (CRUD, edit, toggle, manual wallet credit/debit)
-- Wallet (double-entry ledger, consolidated ledger report, all wallets view, per-user ledger)
-- Operators (CRUD with name, service type, opCode)
-- API Config (CRUD, headers, authToken, requestFormat, response field mapping, test API, operator codes, response mappings, status check config)
-- Commission (CRUD by User Type + Operator + Service)
-- Routing (API priority list with failover)
-- Recharge:
-  - Atomic debit-first flow (debit -> API call -> refund on fail OR commission on success)
-  - **Dynamic Variable Substitution** in API URLs and request bodies: `[number]`, `[op_code]`, `[amount]`, `[txn_id]`, `[token]`, `[circle]`, `[provider_ref]`
-  - **Operator Code Mapping** - translates operatorId to provider-specific codes
-  - **Request Format Support** - GET, POST, POST_JSON, POSTDATA (form-urlencoded)
-  - **Response Parsing** - supports nested dot-notation paths, response code mapping
-  - **Transaction Status Check** - resolves pending txns via provider's status check API
-  - **Operator Name** in all transaction records and reports
-  - Failover to next API on failure, Retry for failed txns
-  - Sandbox mode with random outcomes, Bulk sandbox test runner
-- Reports (dashboard stats, admin dashboard, operator-wise data)
+### Core Backend Modules
+- **Auth** - JWT login/register with role-based access
+- **Users** - CRUD, edit, toggle, manual wallet credit/debit, KYC fields, API key, IP whitelist
+- **Wallet** - Double-entry ledger, consolidated ledger report, all wallets view
+- **Operators** - CRUD with name, service type, opCode
+- **API Config** - Full provider setup with dynamic variables, response mapping, test API, operator code mapping, status check config
+- **Commission** - By User Type + Operator + Service
+- **Routing** - API priority list with failover
 
-### Admin Panel
-- Dashboard with stats
-- User Management: wallet balance column, Edit/Wallet/Ledger/Toggle actions
-- Operators Management
-- API Configuration: full provider setup with dynamic variables, test API
-- Commission Settings (User Type + Operator + Service)
-- Routing Rules (API priority with failover)
-- Live Transactions: user names, **operator names**, auto-refresh, filter, search, retry, check-status
-- Advanced Reports: All/Failed/Pending tabs with **operator names**, CSV export
-- Ledger Report: consolidated view with opening/closing balances, CSV export
-- Sandbox Test runner
+### Transaction System
+- **Atomic debit-first flow** (debit -> API call -> refund on fail OR commission on success)
+- **Dynamic Variable Substitution** - `[number]`, `[op_code]`, `[amount]`, `[txn_id]`, `[token]`, `[circle]`, `[provider_ref]`
+- **Request Format Support** - GET, POST, POST_JSON, POSTDATA
+- **Transaction Status Check** - via provider's status check API
+- **Bulk Status Resolver** - resolves all pending transactions at once
+- **Admin Manual Status Change** - admin can change any txn status with wallet handling
+- **Retry with API selection** - retry failed txn with specific API
+- **API Request/Response logging** - stored per transaction for audit
 
-### User Panel
-- Dashboard, Recharge, Wallet, Reports, Settings
+### Webhook System
+- **Provider Webhook** - `POST /api/webhook/:apiId/callback` receives status updates
+- **Pending → Success/Failed** - updates transaction and handles wallet
+- **Failed + Success webhook → DISPUTE** - creates dispute record for admin manual decision
+- **Callback token validation** - security for webhook endpoints
 
-## P1 - Next Up
-- KYC Management (PAN/Aadhaar/GST document upload & admin verification)
-- Enhanced Reports (operator-wise profit analysis, date filters)
+### Dispute Management
+- **Dispute records** - created when failed txn receives success webhook
+- **Admin resolution** - accept as success, reject, or manual credit
+- **Unresolved/All views** - filter by resolution status
 
-## P2 - Future/Backlog
-- 2FA Implementation
-- WebSocket notifications for real-time transaction updates
-- Reconciliation System (cron job to detect mismatches)
-- Message queue (RabbitMQ) for high transaction loads
-- Customer-facing reseller API with HMAC signature validation
-- Refactor api.js into feature-based service modules
+### KYC Management
+- **User submission** - PAN, Aadhaar, GST document numbers
+- **Admin verification** - approve/reject with reasons
+- **Status tracking** - pending, approved, rejected
 
-## Key Architecture
-- **Transaction Flow**: Debit wallet -> Call provider API (with failover) -> On success: credit commission. On failure: refund. On pending: mark for status check later.
-- **Dynamic Variables**: `[number]`, `[op_code]`, `[amount]`, `[txn_id]`, `[token]`, `[circle]`, `[provider_ref]` - substituted in URLs, request params, and headers
-- **Status Check**: Sandbox randomly resolves (60% success, 20% pending, 20% failed). Real APIs call provider's statusCheckEndpoint with configured method/params.
+### 2FA Authentication
+- **TOTP-based** - enable, disable, verify
+- **Secret generation** - for authenticator apps
+
+### Customer-Facing Reseller API
+- **API Key auth** - `x-api-key` header
+- **IP Whitelist** - configurable per API user
+- **Endpoints** - Recharge, Status check, Balance
+- **API documentation** - built-in docs page
+
+### Reconciliation System
+- **Auto-run** - every 10 minutes
+- **Stats** - total pending, stale (>30min), today's success/failed/disputes
+- **Manual trigger** - admin can run on demand
+
+### Message Queue
+- **MongoDB-based** - job queue with retry logic
+- **Handler registration** - extensible for different job types
+- **Auto-processing** - every 5 seconds
+
+### WebSocket Notifications
+- **Socket.IO gateway** - `/notifications` namespace
+- **User-specific** - notifications targeted by userId
+- **Admin broadcasts** - admin-specific events
+
+### Admin Panel Pages
+1. Dashboard (stats overview)
+2. User Management (wallet balance, actions)
+3. Operators Management
+4. API Configuration (dynamic variables, test API)
+5. Commission Settings
+6. Routing Rules
+7. **Live Transactions** (status change, retry, view detail)
+8. **Pending Report** (bulk resolve, retry with API, API req/resp detail)
+9. **Dispute Report** (resolve disputes from webhook conflicts)
+10. Advanced Reports (all/failed/pending with operator names)
+11. Ledger Report (consolidated view, CSV export)
+12. **KYC Management** (verify/reject documents)
+13. **Reseller API** (API users, key management, IP whitelist, docs)
+14. **Reconciliation** (stats, manual run)
+15. **2FA Settings** (enable/disable)
+16. Sandbox Test runner
+
+### User Panel Pages
+1. Dashboard
+2. Recharge
+3. KYC Submit
+4. 2FA Settings
+
+### Frontend Architecture
+- **Refactored api.js** into feature-based modules:
+  - `apiClient.js` - axios instance with interceptors
+  - `authService.js` - login/register
+  - `rechargeService.js` - all transaction operations
+  - `walletService.js` - wallet operations
+  - `adminService.js` - admin CRUD operations
+  - `api.js` - barrel export (backward compatible)
+
+## Key API Endpoints
+- `POST /api/webhook/:apiId/callback` - Provider webhook
+- `POST /api/recharge/:id/change-status` - Admin status change
+- `POST /api/recharge/bulk-resolve` - Bulk resolve pending
+- `GET /api/recharge/detail/:id` - Txn detail with API req/resp
+- `POST /api/recharge/:id/retry-with-api` - Retry with specific API
+- `POST /api/kyc/submit` - Submit KYC document
+- `POST /api/kyc/:id/verify` - Admin verify KYC
+- `GET /api/disputes` - All disputes
+- `POST /api/disputes/:id/resolve` - Resolve dispute
+- `GET /api/reconciliation/report` - Reconciliation stats
+- `POST /api/customer-api/recharge` - Reseller API
+- `GET /api/customer-api/balance` - Reseller balance
+- `POST /api/two-factor/enable` - Enable 2FA
+
+## P2 - Remaining/Future Tasks
+- File upload for KYC documents (currently number-only)
+- Email/SMS notifications for low balance alerts
+- Provider report import for reconciliation
+- Rate limiting on reseller API
+- Dashboard charts and analytics
+- Operator-wise profit analysis report
+- Multi-currency support
 
 ## Notes
 - Sandbox mode uses **MOCKED** random responses (not real provider APIs)
