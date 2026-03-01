@@ -195,12 +195,7 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-3 gap-8">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-10 h-10 bg-accent rounded-md flex items-center justify-center">
-                  <Smartphone className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-2xl font-heading font-bold">PaisaPe</span>
-              </div>
+              <img src="/images/paisape-logo.png" alt="PaisaPe" className="h-10 mb-4" />
               <p className="text-white/80">
                 Your trusted partner for multi-service recharge and bill payments.
               </p>
