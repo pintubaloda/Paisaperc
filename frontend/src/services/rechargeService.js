@@ -4,6 +4,7 @@ const rechargeService = {
   doRecharge: (data) => apiClient.post('/recharge', data),
   getMyTransactions: () => apiClient.get('/recharge/my'),
   getAllTransactions: (limit = 1000) => apiClient.get(`/recharge/all?limit=${limit}`),
+  getAll: (limit = 1000) => apiClient.get(`/recharge/all?limit=${limit}`),
   getStats: () => apiClient.get('/recharge/stats'),
   getFailedTransactions: () => apiClient.get('/recharge/failed/list'),
   getPendingTransactions: () => apiClient.get('/recharge/pending/list'),
