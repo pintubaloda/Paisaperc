@@ -392,21 +392,49 @@ const APIConfigurationEnhanced = () => {
 
               <div className="space-y-2">
                 <Label>Parameters</Label>
+                <p className="text-xs text-muted-foreground">Add fields sent to the API. Check "Dynamic" and select a system variable for runtime replacement.</p>
                 <div className="border rounded-lg p-3 space-y-2 bg-muted/30">
                   {apiForm.parameters.map((param, index) => (
                     <div key={index} className="flex items-center space-x-2 p-2 bg-white rounded border text-sm">
-                      <code className="flex-1">{param.fieldName}: {param.fieldValue} {param.isDynamic && <Badge variant="secondary" className="text-[10px]">Dynamic</Badge>}</code>
+                      <code className="flex-1">{param.fieldName}: <span className={param.isDynamic ? 'text-blue-600 font-semibold' : ''}>{param.fieldValue}</span> {param.isDynamic && <Badge variant="secondary" className="text-[10px]">Dynamic</Badge>}</code>
                       <Button type="button" size="sm" variant="destructive" onClick={() => removeParameter(index)}><Trash2 className="w-3 h-3" /></Button>
                     </div>
                   ))}
-                  <div className="grid grid-cols-3 gap-2">
-                    <Input placeholder="Field name (e.g., token)" value={newParam.fieldName} onChange={(e) => setNewParam({ ...newParam, fieldName: e.target.value })} className="text-sm" />
-                    <Input placeholder="Value (e.g., [number])" value={newParam.fieldValue} onChange={(e) => setNewParam({ ...newParam, fieldValue: e.target.value })} className="text-sm" />
-                    <Button type="button" onClick={addParameter} size="sm" className="bg-accent">Add</Button>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" checked={newParam.isDynamic} onChange={(e) => setNewParam({ ...newParam, isDynamic: e.target.checked })} className="w-4 h-4" />
-                    <Label className="text-xs">Dynamic field (replaced at runtime)</Label>
+                  <div className="grid grid-cols-12 gap-2 items-end">
+                    <div className="col-span-3">
+                      <Label className="text-xs">Field Name</Label>
+                      <Input placeholder="e.g., token" value={newParam.fieldName} onChange={(e) => setNewParam({ ...newParam, fieldName: e.target.value })} className="text-sm" />
+                    </div>
+                    <div className="col-span-4">
+                      {newParam.isDynamic ? (
+                        <div>
+                          <Label className="text-xs">System Variable</Label>
+                          <Select value={newParam.fieldValue} onValueChange={(v) => setNewParam({ ...newParam, fieldValue: v })}>
+                            <SelectTrigger className="text-sm"><SelectValue placeholder="Select variable" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="[number]">[number] - Mobile Number</SelectItem>
+                              <SelectItem value="[op_code]">[op_code] - Operator Code</SelectItem>
+                              <SelectItem value="[amount]">[amount] - Recharge Amount</SelectItem>
+                              <SelectItem value="[txn_id]">[txn_id] - Transaction ID</SelectItem>
+                              <SelectItem value="[token]">[token] - Auth Token</SelectItem>
+                              <SelectItem value="[circle]">[circle] - Circle/State</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ) : (
+                        <div>
+                          <Label className="text-xs">Static Value</Label>
+                          <Input placeholder="e.g., mB88Sfu2hz..." value={newParam.fieldValue} onChange={(e) => setNewParam({ ...newParam, fieldValue: e.target.value })} className="text-sm" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="col-span-3 flex items-center space-x-2 pb-1">
+                      <input type="checkbox" checked={newParam.isDynamic} onChange={(e) => setNewParam({ ...newParam, isDynamic: e.target.checked, fieldValue: '' })} className="w-4 h-4" />
+                      <Label className="text-xs">Dynamic</Label>
+                    </div>
+                    <div className="col-span-2">
+                      <Button type="button" onClick={addParameter} size="sm" className="bg-accent w-full">Add</Button>
+                    </div>
                   </div>
                 </div>
               </div>
