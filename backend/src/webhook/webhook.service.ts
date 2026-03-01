@@ -51,6 +51,7 @@ export class WebhookService {
       transaction.status = TransactionStatus.DISPUTE;
       transaction.responseMessage = `Dispute: was failed, webhook says success`;
       await transaction.save();
+      await this.txnEvents.log(data.txnId, 'dispute_created', `DISPUTE: Transaction was failed but webhook says success — escalated for admin review`, 'dispute');
       return { status: 'dispute_created', txnId: transaction.id };
     }
 
