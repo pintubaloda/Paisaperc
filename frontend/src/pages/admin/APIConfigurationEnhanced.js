@@ -452,6 +452,23 @@ const APIConfigurationEnhanced = () => {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label>Status Check API (Optional)</Label>
+                <div className="border rounded-lg p-3 bg-muted/30 grid grid-cols-2 gap-3">
+                  <div className="col-span-2"><Label className="text-xs">Status Check Endpoint</Label><Input placeholder="/ (same domain)" value={apiForm.statusCheckEndpoint || ''} onChange={(e) => setApiForm({ ...apiForm, statusCheckEndpoint: e.target.value })} className="text-sm" /></div>
+                  <div><Label className="text-xs">Method</Label>
+                    <Select value={apiForm.statusCheckMethod || 'GET'} onValueChange={(v) => setApiForm({ ...apiForm, statusCheckMethod: v })}>
+                      <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="GET">GET</SelectItem>
+                        <SelectItem value="POST">POST</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div><Label className="text-xs">Format: ?type=STATUS&token=[token]&txn_id=[txn_id]</Label></div>
+                </div>
+              </div>
+
               <div className="flex items-center space-x-2">
                 <input type="checkbox" id="apiActive" checked={apiForm.isActive} onChange={(e) => setApiForm({ ...apiForm, isActive: e.target.checked })} className="w-4 h-4" />
                 <Label htmlFor="apiActive">Active</Label>
