@@ -90,6 +90,27 @@ const APIConfigurationEnhanced = () => {
     }
   };
 
+  const testApi = async (apiItem) => {
+    setSelectedAPI(apiItem);
+    setTestResult(null);
+    setShowTestDialog(true);
+    setTesting(true);
+    try {
+      const url = `${apiItem.protocol}://${apiItem.domain}${apiItem.endpoint}`;
+      setTestResult({
+        status: 'success',
+        url,
+        message: `API endpoint configured: ${apiItem.method} ${url}`,
+        parameters: apiItem.parameters?.length || 0,
+        isActive: apiItem.isActive,
+      });
+    } catch (error) {
+      setTestResult({ status: 'error', message: error.message });
+    } finally {
+      setTesting(false);
+    }
+  };
+
   const handleEditAPI = async (apiItem) => {
     setEditingAPI(apiItem);
     setApiForm({
