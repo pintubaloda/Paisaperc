@@ -702,33 +702,82 @@ const APIConfigurationEnhanced = () => {
 
       {/* Test API Dialog */}
       <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>Test API - {selectedAPI?.name}</DialogTitle></DialogHeader>
-          {testing ? (
-            <div className="text-center py-8"><p className="text-muted-foreground">Testing API connection...</p></div>
-          ) : testResult ? (
-            <div className="space-y-4">
-              <div className={`p-4 rounded-lg border ${testResult.status === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                <p className={`font-medium ${testResult.status === 'success' ? 'text-green-800' : 'text-red-800'}`}>
-                  {testResult.status === 'success' ? 'Configuration Valid' : 'Error'}
-                </p>
-                <p className="text-sm mt-1">{testResult.message}</p>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">Enter test parameters to preview the actual API request</p>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Mobile No</Label>
+                <Input placeholder="9876543210" value={testForm.mobile} onChange={(e) => setTestForm({...testForm, mobile: e.target.value})} data-testid="test-api-mobile" />
               </div>
-              {testResult.url && (
-                <div className="space-y-2">
-                  <Label>Endpoint URL</Label>
-                  <code className="block bg-muted p-2 rounded text-sm break-all">{testResult.url}</code>
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-muted/50 rounded"><p className="text-sm text-muted-foreground">Parameters</p><p className="font-bold">{testResult.parameters}</p></div>
-                <div className="text-center p-3 bg-muted/50 rounded"><p className="text-sm text-muted-foreground">Status</p><p className="font-bold">{testResult.isActive ? 'Active' : 'Inactive'}</p></div>
+              <div className="space-y-1">
+                <Label className="text-xs">Operator Code</Label>
+                <Input placeholder="JIO" value={testForm.operatorCode} onChange={(e) => setTestForm({...testForm, operatorCode: e.target.value})} data-testid="test-api-operator" />
               </div>
-              <p className="text-xs text-muted-foreground">Note: Actual API call will be made during recharge processing. This validates configuration only.</p>
+              <div className="space-y-1">
+                <Label className="text-xs">Amount</Label>
+                <Input type="number" placeholder="199" value={testForm.amount} onChange={(e) => setTestForm({...testForm, amount: e.target.value})} data-testid="test-api-amount" />
+              </div>
             </div>
-          ) : null}
-          <div className="flex justify-end mt-4">
-            <Button variant="outline" onClick={() => setShowTestDialog(false)}>Close</Button>
+            <Button onClick={executeTestApi} disabled={testing} className="w-full bg-accent hover:bg-accent-hover" data-testid="test-api-execute-btn">
+              <PlayCircle className="w-4 h-4 mr-2" />
+              {testing ? 'Generating...' : 'Generate Test Request'}
+            </Button>
+
+            {testResult && (
+              <div className="space-y-3">
+                {testResult.status === 'error' ? (
+                  <div className="p-3 rounded-lg border bg-red-50 border-red-200">
+                    <p className="text-sm text-red-800">{testResult.message}</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="p-3 rounded-lg border bg-green-50 border-green-200">
+                      <p className="font-medium text-green-800 text-sm">Request Preview ({testResult.method})</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">Full URL</Label>
+                      <code className="block bg-muted p-2 rounded text-xs break-all font-mono">{testResult.fullUrl}</code>
+                    </div>
+                    {testResult.headers?.length > 0 && (
+                      <div className="space-y-2">
+                        <Label className="text-xs">Headers</Label>
+                        <div className="bg-muted p-2 rounded text-xs font-mono">
+                          {testResult.headers.map((h, i) => <div key={i}>{h.key}: {h.value}</div>)}
+                        </div>
+                      </div>
+                    )}
+                    {testResult.requestBody && Object.keys(testResult.requestBody).length > 0 && (
+                      <div className="space-y-2">
+                        <Label className="text-xs">Request Body (JSON)</Label>
+                        <pre className="bg-muted p-2 rounded text-xs font-mono overflow-auto">{JSON.stringify(testResult.requestBody, null, 2)}</pre>
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <Label className="text-xs">Parameters ({testResult.parameters?.length || 0})</Label>
+                      <div className="bg-muted p-2 rounded text-xs font-mono space-y-1">
+                        {testResult.parameters?.map((p, i) => (
+                          <div key={i}><span className="text-blue-600">{p.key}</span> = {p.value} {p.isDynamic && <Badge variant="outline" className="text-[9px] px-1 py-0">Dynamic</Badge>}</div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">Response Field Mapping</Label>
+                      <div className="bg-muted p-2 rounded text-xs font-mono grid grid-cols-2 gap-1">
+                        <div>Success: <span className="text-accent">{testResult.responseMapping?.successField}={testResult.responseMapping?.successValue}</span></div>
+                        <div>Failed: <span className="text-destructive">{testResult.responseMapping?.failedValue}</span></div>
+                        <div>Pending: <span className="text-yellow-600">{testResult.responseMapping?.pendingValue}</span></div>
+                        <div>TxnID: <span className="text-blue-600">{testResult.responseMapping?.txnIdField}</span></div>
+                        <div>Balance: <span className="text-blue-600">{testResult.responseMapping?.balanceField}</span></div>
+                        <div>Message: <span className="text-blue-600">{testResult.responseMapping?.messageField}</span></div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">This previews the actual request. No live call is made to the provider.</p>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
