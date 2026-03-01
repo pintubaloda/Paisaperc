@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request, Query } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards, Request, Query } from '@nestjs/common';
 import { RechargeService } from './recharge.service';
 import { CreateRechargeDto } from './recharge.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -12,67 +12,104 @@ export class RechargeController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async create(@Request() req, @Body() createDto: CreateRechargeDto) {
-    return this.rechargeService.createRecharge(req.user.id, req.user.role, createDto);
+  async recharge(@Request() req, @Body() body: CreateRechargeDto) {
+    return this.rechargeService.createRecharge(req.user.id, req.user.role, body);
   }
 
-  @Get()
+  @Get('my')
   @UseGuards(JwtAuthGuard)
-  async getMyTransactions(@Request() req, @Query('limit') limit?: string) {
-    return this.rechargeService.getTransactions(req.user.id, limit ? parseInt(limit) : 100);
+  async myTransactions(@Request() req) {
+    return this.rechargeService.getTransactions(req.user.id);
   }
 
   @Get('all')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async getAllTransactions(@Query('limit') limit?: string) {
-    return this.rechargeService.getAllTransactions(limit ? parseInt(limit) : 1000);
+  async allTransactions(@Query('limit') limit: string) {
+    return this.rechargeService.getAllTransactions(parseInt(limit) || 1000);
   }
 
   @Get('stats')
-  @UseGuards(JwtAuthGuard)
-  async getStats() {
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async stats() {
     return this.rechargeService.getStats();
   }
 
   @Get('failed/list')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async getFailedTransactions(@Query('limit') limit?: string) {
-    return this.rechargeService.getFailedTransactions(limit ? parseInt(limit) : 100);
+  async failedTransactions() {
+    return this.rechargeService.getFailedTransactions();
   }
 
   @Get('pending/list')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async getPendingTransactions(@Query('limit') limit?: string) {
-    return this.rechargeService.getPendingTransactions(limit ? parseInt(limit) : 100);
+  async pendingTransactions() {
+    return this.rechargeService.getPendingTransactions();
   }
 
-  @Post('sandbox-test')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  async sandboxBulkTest(@Body() body: { userId: string; count: number; operators: string[]; tpm?: number }) {
-    return this.rechargeService.sandboxBulkTest(body.userId, body.count || 10, body.operators || [], body.tpm || 60);
-  }
-
-  @Post(':id/check-status')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  async checkStatus(@Param('id') id: string) {
-    return this.rechargeService.checkPendingStatus(id);
-  }
-
-  @Post(':id/retry')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  async retryTransaction(@Param('id') id: string) {
-    return this.rechargeService.retryFailedTransaction(id);
+  @Get('detail/:id')
+  @UseGuards(JwtAuthGuard)
+  async transactionDetail(@Param('id') id: string) {
+    return this.rechargeService.getTransactionDetail(id);
   }
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   async getTransaction(@Param('id') id: string) {
     return this.rechargeService.getTransactionById(id);
+  }
+
+  @Post(':id/check-status')
+  @UseGuards(JwtAuthGuard)
+  async checkStatus(@Param('id') id: string) {
+    return this.rechargeService.checkPendingStatus(id);
+  }
+
+  @Post(':id/retry')
+  @UseGuards(JwtAuthGuard)
+  async retry(@Param('id') id: string) {
+    return this.rechargeService.retryFailedTransaction(id);
+  }
+
+  @Post(':id/retry-with-api')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async retryWithApi(@Param('id') id: string, @Body() body: { apiId: string }) {
+    return this.rechargeService.retryWithApi(id, body.apiId);
+  }
+
+  @Post(':id/change-status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async changeStatus(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() body: { status: string; note: string },
+  ) {
+    return this.rechargeService.adminChangeStatus(id, body.status, body.note, req.user.id);
+  }
+
+  @Post('bulk-resolve')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async bulkResolve() {
+    return this.rechargeService.bulkResolveStatus();
+  }
+
+  @Post('sandbox-test')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async sandboxTest(@Body() body: { userId: string; count: number; operators: string[]; tpm: number }) {
+    return this.rechargeService.sandboxBulkTest(body.userId, body.count, body.operators, body.tpm);
+  }
+
+  @Post('run-sandbox-test')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async runSandboxTest(@Body() body: { userId: string; count: number; operators: string[]; tpm: number }) {
+    return this.rechargeService.sandboxBulkTest(body.userId, body.count, body.operators, body.tpm);
   }
 }
