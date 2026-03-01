@@ -55,6 +55,16 @@ const LiveTransactions = () => {
     }
   };
 
+  const handleCheckStatus = async (txnId) => {
+    try {
+      const res = await api.recharge.checkStatus(txnId);
+      toast.success(`Status: ${res.data.status?.toUpperCase()} - ${res.data.responseMessage || ''}`);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Status check failed');
+    }
+  };
+
   const filtered = transactions.filter(t => {
     if (filter !== 'all' && t.status !== filter) return false;
     if (search && !t.mobile?.includes(search) && !t.id?.includes(search)) return false;
