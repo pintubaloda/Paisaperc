@@ -106,6 +106,13 @@ const api = {
     getStatus: () => apiClient.get('/two-factor/status'),
   },
 
+  paymentRequests: {
+    getMy: () => apiClient.get('/payment-requests'),
+    getAll: () => apiClient.get('/payment-requests/all'),
+    create: (data) => apiClient.post('/payment-requests', data),
+    update: (id, data) => apiClient.patch(`/payment-requests/${id}`, data),
+  },
+
   // Direct methods (backward compat)
   login: (email, password) => apiClient.post('/auth/login', { email, password }),
   register: (data) => apiClient.post('/auth/register', data),
