@@ -213,6 +213,11 @@ const PendingReport = () => {
                   </Button>
                 </div>
               )}
+
+              <div className="border-t pt-4">
+                <Label className="font-semibold mb-3 block">Transaction Timeline</Label>
+                <TransactionTimeline txnId={selectedTxn.id} />
+              </div>
             </div>
           )}
         </DialogContent>
