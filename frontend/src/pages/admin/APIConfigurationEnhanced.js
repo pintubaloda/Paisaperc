@@ -663,6 +663,39 @@ const APIConfigurationEnhanced = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Test API Dialog */}
+      <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Test API - {selectedAPI?.name}</DialogTitle></DialogHeader>
+          {testing ? (
+            <div className="text-center py-8"><p className="text-muted-foreground">Testing API connection...</p></div>
+          ) : testResult ? (
+            <div className="space-y-4">
+              <div className={`p-4 rounded-lg border ${testResult.status === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                <p className={`font-medium ${testResult.status === 'success' ? 'text-green-800' : 'text-red-800'}`}>
+                  {testResult.status === 'success' ? 'Configuration Valid' : 'Error'}
+                </p>
+                <p className="text-sm mt-1">{testResult.message}</p>
+              </div>
+              {testResult.url && (
+                <div className="space-y-2">
+                  <Label>Endpoint URL</Label>
+                  <code className="block bg-muted p-2 rounded text-sm break-all">{testResult.url}</code>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-3 bg-muted/50 rounded"><p className="text-sm text-muted-foreground">Parameters</p><p className="font-bold">{testResult.parameters}</p></div>
+                <div className="text-center p-3 bg-muted/50 rounded"><p className="text-sm text-muted-foreground">Status</p><p className="font-bold">{testResult.isActive ? 'Active' : 'Inactive'}</p></div>
+              </div>
+              <p className="text-xs text-muted-foreground">Note: Actual API call will be made during recharge processing. This validates configuration only.</p>
+            </div>
+          ) : null}
+          <div className="flex justify-end mt-4">
+            <Button variant="outline" onClick={() => setShowTestDialog(false)}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
