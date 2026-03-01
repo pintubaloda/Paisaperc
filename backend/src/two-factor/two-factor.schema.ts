@@ -16,6 +16,9 @@ export class TwoFactorAuth extends Document {
   @Prop()
   secret: string;
 
+  @Prop({ default: false })
+  isVerified: boolean;
+
   @Prop({ type: [String], default: [] })
   backupCodes: string[];
 }
