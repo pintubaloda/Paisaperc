@@ -183,6 +183,7 @@ const LiveTransactions = () => {
                     <td className="p-3">
                       <div className="flex items-center space-x-1">
                         <Button size="sm" variant="ghost" onClick={() => setSelectedTxn(txn)} data-testid={`view-txn-${txn.id}`}><Eye className="w-4 h-4" /></Button>
+                        <Button size="sm" variant="ghost" onClick={() => { setChangeStatusTxn(txn); setNewStatus(''); setStatusNote(''); }} data-testid={`edit-status-${txn.id}`}><Edit className="w-4 h-4" /></Button>
                         {txn.status === 'failed' && (
                           <Button size="sm" variant="outline" onClick={() => handleRetry(txn.id)} data-testid={`retry-txn-${txn.id}`}><RotateCcw className="w-4 h-4" /></Button>
                         )}
