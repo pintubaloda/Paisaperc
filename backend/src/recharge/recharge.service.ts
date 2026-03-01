@@ -120,6 +120,8 @@ export class RechargeService {
       providerRef?: string;
       message: string;
       apiId?: string;
+      apiRequest?: string;
+      apiResponse?: string;
     } = { status: 'failed', message: 'No API available' };
 
     if (isSandbox) {
