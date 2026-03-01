@@ -22,6 +22,9 @@ import ReconciliationPage from './pages/admin/ReconciliationPage';
 import TwoFactorSettings from './pages/settings/TwoFactorSettings';
 import KYCSubmit from './pages/settings/KYCSubmit';
 import RechargePage from './pages/RechargePage';
+import WalletPage from './pages/WalletPage';
+import UserReports from './pages/UserReports';
+import UserSettings from './pages/UserSettings';
 import AdminLayout from './layouts/AdminLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 
@@ -59,6 +62,9 @@ function AppRoutes() {
       <Route path="/dashboard" element={isLoggedIn ? <DashboardLayout /> : <Navigate to="/login" />}>
         <Route index element={<Dashboard />} />
         <Route path="recharge" element={<RechargePage />} />
+        <Route path="wallet" element={<WalletPage />} />
+        <Route path="reports" element={<UserReports />} />
+        <Route path="settings" element={<UserSettings />} />
         <Route path="kyc" element={<KYCSubmit />} />
         <Route path="2fa" element={<TwoFactorSettings />} />
       </Route>
