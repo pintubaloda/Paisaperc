@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/ta
 import { Textarea } from '../../components/ui/textarea';
 import api from '../../services/api';
 import { toast } from 'sonner';
-import { Settings, Plus, Edit, Trash2, Link as LinkIcon, Copy, ArrowRight } from 'lucide-react';
+import { Settings, Plus, Edit, Trash2, Link as LinkIcon, Copy, ArrowRight, PlayCircle } from 'lucide-react';
 
 const APIConfigurationEnhanced = () => {
   const [apis, setApis] = useState([]);
@@ -21,7 +21,9 @@ const APIConfigurationEnhanced = () => {
   const [showOperatorCodesDialog, setShowOperatorCodesDialog] = useState(false);
   const [showResponseDialog, setShowResponseDialog] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState('');
-  const [editingAPI, setEditingAPI] = useState(null);
+  const [showTestDialog, setShowTestDialog] = useState(false);
+  const [testResult, setTestResult] = useState(null);
+  const [testing, setTesting] = useState(false);
   
   const [apiForm, setApiForm] = useState({
     name: '',
