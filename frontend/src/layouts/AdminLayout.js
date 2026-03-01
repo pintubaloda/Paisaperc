@@ -1,105 +1,82 @@
-import React, { useEffect, useState } from 'react';
-import { Outlet, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Button } from '../components/ui/button';
-import { Smartphone, LayoutDashboard, Users, Settings, TrendingUp, Zap, DollarSign, LogOut, Menu, Route, Activity, BookOpen } from 'lucide-react';
-import { Sheet, SheetContent, SheetTrigger } from '../components/ui/sheet';
+import {
+  LayoutDashboard, Users, Radio, Settings2, Percent, GitBranch,
+  Activity, FileText, BookOpen, FlaskConical, Clock, AlertTriangle,
+  FileCheck, Globe, RefreshCw, Shield, LogOut
+} from 'lucide-react';
+
+const navItems = [
+  { path: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  { path: '/admin/users', label: 'Users', icon: Users },
+  { path: '/admin/operators', label: 'Operators', icon: Radio },
+  { path: '/admin/api-config', label: 'API Config', icon: Settings2 },
+  { path: '/admin/commission', label: 'Commission', icon: Percent },
+  { path: '/admin/routing', label: 'Routing', icon: GitBranch },
+  { type: 'divider', label: 'Transactions' },
+  { path: '/admin/live-transactions', label: 'Live Transactions', icon: Activity },
+  { path: '/admin/pending-report', label: 'Pending Report', icon: Clock },
+  { path: '/admin/disputes', label: 'Disputes', icon: AlertTriangle },
+  { type: 'divider', label: 'Reports & Tools' },
+  { path: '/admin/reports', label: 'Reports', icon: FileText },
+  { path: '/admin/ledger', label: 'Ledger', icon: BookOpen },
+  { path: '/admin/reconciliation', label: 'Reconciliation', icon: RefreshCw },
+  { type: 'divider', label: 'Management' },
+  { path: '/admin/kyc', label: 'KYC Verify', icon: FileCheck },
+  { path: '/admin/reseller-api', label: 'Reseller API', icon: Globe },
+  { path: '/admin/2fa', label: '2FA Settings', icon: Shield },
+  { path: '/admin/sandbox', label: 'Sandbox Test', icon: FlaskConical },
+];
 
 const AdminLayout = () => {
-  const { user, logout, loading } = useAuth();
-  const navigate = useNavigate();
+  const { logout } = useAuth();
   const location = useLocation();
 
-  if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
-  }
-
-  if (!user || user.role !== 'admin') {
-    return <Navigate to="/login" replace />;
-  }
-
-  const navItems = [
-    { icon: <LayoutDashboard className="w-5 h-5" />, label: 'Dashboard', path: '/admin/dashboard' },
-    { icon: <Users className="w-5 h-5" />, label: 'Users', path: '/admin/users' },
-    { icon: <Zap className="w-5 h-5" />, label: 'Operators', path: '/admin/operators' },
-    { icon: <Settings className="w-5 h-5" />, label: 'API Config', path: '/admin/api-config' },
-    { icon: <DollarSign className="w-5 h-5" />, label: 'Commission', path: '/admin/commission' },
-    { icon: <Route className="w-5 h-5" />, label: 'Routing', path: '/admin/routing' },
-    { icon: <Activity className="w-5 h-5" />, label: 'Transactions', path: '/admin/transactions' },
-    { icon: <Zap className="w-5 h-5" />, label: 'Sandbox', path: '/admin/sandbox' },
-    { icon: <BookOpen className="w-5 h-5" />, label: 'Ledger', path: '/admin/ledger' },
-    { icon: <TrendingUp className="w-5 h-5" />, label: 'Reports', path: '/admin/reports' },
-  ];
-
-  const Sidebar = () => (
-    <div className="h-full flex flex-col bg-primary text-white p-6">
-      <div className="flex items-center space-x-2 mb-8">
-        <img src="/images/paisape-logo.png" alt="PaisaPe" className="h-10" />
-      </div>
-      <nav className="flex-1 space-y-2">
-        {navItems.map((item) => (
-          <button
-            key={item.path}
-            onClick={() => navigate(item.path)}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-              location.pathname === item.path
-                ? 'bg-accent text-white'
-                : 'hover:bg-primary-hover text-white/80 hover:text-white'
-            }`}
-            data-testid={`admin-nav-${item.label.toLowerCase()}`}
-          >
-            {item.icon}
-            <span className="font-medium">{item.label}</span>
-          </button>
-        ))}
-      </nav>
-      <Button
-        variant="ghost"
-        onClick={logout}
-        className="w-full justify-start text-white/80 hover:text-white hover:bg-primary-hover"
-        data-testid="admin-logout-btn"
-      >
-        <LogOut className="w-5 h-5 mr-3" />
-        Logout
-      </Button>
-    </div>
-  );
+  const isActive = (item) => {
+    if (item.exact) return location.pathname === item.path;
+    return location.pathname.startsWith(item.path);
+  };
 
   return (
-    <div className="flex h-screen bg-secondary/20">
-      <aside className="hidden lg:block w-64 border-r bg-primary">
-        <Sidebar />
+    <div className="flex h-screen bg-background" data-testid="admin-layout">
+      {/* Sidebar */}
+      <aside className="w-56 bg-slate-900 text-white flex flex-col shrink-0" data-testid="admin-sidebar">
+        <div className="p-4 border-b border-slate-700">
+          <h1 className="text-xl font-bold tracking-tight">PaisaPe</h1>
+          <p className="text-xs text-slate-400">Admin Panel</p>
+        </div>
+        <nav className="flex-1 overflow-y-auto py-2">
+          {navItems.map((item, idx) => {
+            if (item.type === 'divider') {
+              return <p key={idx} className="px-4 pt-4 pb-1 text-[10px] uppercase tracking-wider text-slate-500 font-semibold">{item.label}</p>;
+            }
+            const Icon = item.icon;
+            const active = isActive(item);
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${active ? 'bg-slate-700/70 text-white font-medium' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
+                data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+              >
+                <Icon className="w-4 h-4 shrink-0" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="p-3 border-t border-slate-700">
+          <button onClick={logout} className="flex items-center gap-2 text-sm text-slate-400 hover:text-white w-full" data-testid="admin-logout-btn">
+            <LogOut className="w-4 h-4" /> Logout
+          </button>
+        </div>
       </aside>
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white border-b px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Sheet>
-                <SheetTrigger asChild className="lg:hidden">
-                  <Button variant="ghost" size="icon" data-testid="admin-mobile-menu-btn">
-                    <Menu className="w-6 h-6" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-64">
-                  <Sidebar />
-                </SheetContent>
-              </Sheet>
-              <h1 className="text-xl font-heading font-semibold text-primary">Admin Dashboard</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">Logged in as</p>
-                <p className="font-medium">{user.name}</p>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <main className="flex-1 overflow-auto p-6">
-          <Outlet />
-        </main>
-      </div>
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto p-6" data-testid="admin-main-content">
+        <Outlet />
+      </main>
     </div>
   );
 };
