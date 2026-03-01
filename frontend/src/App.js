@@ -13,7 +13,7 @@ import WalletPage from './pages/WalletPage';
 import AdminDashboard from './pages/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import OperatorsManagement from './pages/admin/OperatorsManagement';
-import APIConfiguration from './pages/admin/APIConfiguration';
+import APIConfigurationEnhanced from './pages/admin/APIConfigurationEnhanced';
 import CommissionManagement from './pages/admin/CommissionManagement';
 import AdvancedReports from './pages/admin/AdvancedReports';
 import './App.css';
