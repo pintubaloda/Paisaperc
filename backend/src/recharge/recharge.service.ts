@@ -10,6 +10,7 @@ import { ApiConfigService } from '../api-config/api-config.service';
 import { UsersService } from '../users/users.service';
 import { OperatorsService } from '../operators/operators.service';
 import { TransactionStatus, UserRole } from '../common/enums';
+import { TxnEventService } from './txn-event.service';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 
@@ -22,6 +23,7 @@ export class RechargeService {
     private routingService: RoutingService,
     private apiConfigService: ApiConfigService,
     private operatorsService: OperatorsService,
+    private txnEvents: TxnEventService,
     @Inject(forwardRef(() => UsersService)) private usersService: UsersService,
   ) {}
 
