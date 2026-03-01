@@ -9,20 +9,19 @@ import { ApiConfigModule } from './api-config/api-config.module';
 import { CommissionModule } from './commission/commission.module';
 import { RoutingModule } from './routing/routing.module';
 import { RechargeModule } from './recharge/recharge.module';
-import { PaymentRequestsModule } from './payment-requests/payment-requests.module';
-import { ReportsModule } from './reports/reports.module';
 import { CustomerApiModule } from './customer-api/customer-api.module';
-import { OperatorAPIMappingModule } from './operator-api-mapping/operator-api-mapping.module';
 import { TwoFactorModule } from './two-factor/two-factor.module';
+import { DisputeModule } from './dispute/dispute.module';
+import { WebhookModule } from './webhook/webhook.module';
+import { KycModule } from './kyc/kyc.module';
+import { GatewayModule } from './gateway/gateway.module';
+import { QueueModule } from './queue/queue.module';
+import { ReconciliationModule } from './reconciliation/reconciliation.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-    MongooseModule.forRoot(process.env.MONGO_URL, {
-      dbName: process.env.DB_NAME,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
+    MongooseModule.forRoot(process.env.MONGO_URL, { dbName: process.env.DB_NAME }),
     AuthModule,
     UsersModule,
     WalletModule,
@@ -31,11 +30,14 @@ import { TwoFactorModule } from './two-factor/two-factor.module';
     CommissionModule,
     RoutingModule,
     RechargeModule,
-    PaymentRequestsModule,
-    ReportsModule,
     CustomerApiModule,
-    OperatorAPIMappingModule,
     TwoFactorModule,
+    DisputeModule,
+    WebhookModule,
+    KycModule,
+    GatewayModule,
+    QueueModule,
+    ReconciliationModule,
   ],
 })
 export class AppModule {}
