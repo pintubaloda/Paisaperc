@@ -1,8 +1,12 @@
 import { Controller, Post, Get, Body, Param, Headers, UnauthorizedException, Req, ForbiddenException } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { RechargeService } from '../recharge/recharge.service';
 import { UsersService } from '../users/users.service';
 import { CreateRechargeDto } from '../recharge/recharge.dto';
 import { Request } from 'express';
+
+@Controller('customer-api')
+@Throttle({ default: { limit: 60, ttl: 60000 } })
 
 @Controller('customer-api')
 export class CustomerApiController {
