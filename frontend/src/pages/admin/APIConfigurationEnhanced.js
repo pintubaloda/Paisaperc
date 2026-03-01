@@ -324,12 +324,12 @@ const APIConfigurationEnhanced = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>API Name *</Label>
-                  <Input placeholder="e.g., Cyrus Recharge API" value={apiForm.name} onChange={(e) => setApiForm({ ...apiForm, name: e.target.value })} required />
+                  <Input placeholder="e.g., StockXchange API" value={apiForm.name} onChange={(e) => setApiForm({ ...apiForm, name: e.target.value })} required data-testid="api-name-input" />
                 </div>
                 <div className="space-y-2">
                   <Label>Service Type *</Label>
                   <Select value={apiForm.apiType} onValueChange={(value) => setApiForm({ ...apiForm, apiType: value })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger data-testid="api-type-select"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="mobile">Mobile</SelectItem>
                       <SelectItem value="dth">DTH</SelectItem>
@@ -339,9 +339,9 @@ const APIConfigurationEnhanced = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label>Protocol *</Label>
+                  <Label>Protocol</Label>
                   <Select value={apiForm.protocol} onValueChange={(value) => setApiForm({ ...apiForm, protocol: value })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -353,49 +353,73 @@ const APIConfigurationEnhanced = () => {
                 <div className="space-y-2">
                   <Label>Method *</Label>
                   <Select value={apiForm.method} onValueChange={(value) => setApiForm({ ...apiForm, method: value })}>
+                    <SelectTrigger data-testid="api-method-select"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="GET">GET (Query Params)</SelectItem>
+                      <SelectItem value="POST">POST (Form Data)</SelectItem>
+                      <SelectItem value="POST_JSON">POST (JSON Body)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Request Format</Label>
+                  <Select value={apiForm.requestFormat} onValueChange={(value) => setApiForm({ ...apiForm, requestFormat: value })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="GET">GET</SelectItem>
-                      <SelectItem value="POST">POST</SelectItem>
-                      <SelectItem value="POST_JSON">POST JSON</SelectItem>
-                      <SelectItem value="POSTDATA">POSTDATA</SelectItem>
+                      <SelectItem value="query_param">Query Parameters</SelectItem>
+                      <SelectItem value="json_body">JSON Body</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Domain *</Label>
-                <Input placeholder="api.provider.com" value={apiForm.domain} onChange={(e) => setApiForm({ ...apiForm, domain: e.target.value })} required />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Domain *</Label>
+                  <Input placeholder="api.stockxchange.in" value={apiForm.domain} onChange={(e) => setApiForm({ ...apiForm, domain: e.target.value })} required data-testid="api-domain-input" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Endpoint *</Label>
+                  <Input placeholder="/" value={apiForm.endpoint} onChange={(e) => setApiForm({ ...apiForm, endpoint: e.target.value })} required data-testid="api-endpoint-input" />
+                </div>
               </div>
 
               <div className="space-y-2">
-                <Label>Endpoint/Page Name *</Label>
-                <Input placeholder="/recharge" value={apiForm.endpoint} onChange={(e) => setApiForm({ ...apiForm, endpoint: e.target.value })} required />
+                <Label>Auth Token (Optional)</Label>
+                <Input placeholder="API authentication token" value={apiForm.authToken} onChange={(e) => setApiForm({ ...apiForm, authToken: e.target.value })} data-testid="api-auth-token" />
               </div>
 
               <div className="space-y-2">
-                <Label>Parameters (Fields)</Label>
-                <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
+                <Label>Parameters</Label>
+                <div className="border rounded-lg p-3 space-y-2 bg-muted/30">
                   {apiForm.parameters.map((param, index) => (
-                    <div key={index} className="flex items-center space-x-2 p-2 bg-white rounded border">
-                      <code className="flex-1 text-sm">
-                        {param.fieldName}: {param.fieldValue} {param.isDynamic && <Badge variant="secondary" className="ml-2">Dynamic</Badge>}
-                      </code>
-                      <Button type="button" size="sm" variant="destructive" onClick={() => removeParameter(index)}>
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
+                    <div key={index} className="flex items-center space-x-2 p-2 bg-white rounded border text-sm">
+                      <code className="flex-1">{param.fieldName}: {param.fieldValue} {param.isDynamic && <Badge variant="secondary" className="text-[10px]">Dynamic</Badge>}</code>
+                      <Button type="button" size="sm" variant="destructive" onClick={() => removeParameter(index)}><Trash2 className="w-3 h-3" /></Button>
                     </div>
                   ))}
                   <div className="grid grid-cols-3 gap-2">
-                    <Input placeholder="Field Name" value={newParam.fieldName} onChange={(e) => setNewParam({ ...newParam, fieldName: e.target.value })} />
-                    <Input placeholder="Value" value={newParam.fieldValue} onChange={(e) => setNewParam({ ...newParam, fieldValue: e.target.value })} />
-                    <Button type="button" onClick={addParameter} size="sm" className="bg-accent">Add Field</Button>
+                    <Input placeholder="Field name (e.g., token)" value={newParam.fieldName} onChange={(e) => setNewParam({ ...newParam, fieldName: e.target.value })} className="text-sm" />
+                    <Input placeholder="Value (e.g., [number])" value={newParam.fieldValue} onChange={(e) => setNewParam({ ...newParam, fieldValue: e.target.value })} className="text-sm" />
+                    <Button type="button" onClick={addParameter} size="sm" className="bg-accent">Add</Button>
                   </div>
                   <div className="flex items-center space-x-2">
                     <input type="checkbox" checked={newParam.isDynamic} onChange={(e) => setNewParam({ ...newParam, isDynamic: e.target.checked })} className="w-4 h-4" />
-                    <Label className="text-sm">Dynamic (replaced at runtime with actual values)</Label>
+                    <Label className="text-xs">Dynamic field (replaced at runtime)</Label>
                   </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Response Field Mapping</Label>
+                <div className="border rounded-lg p-3 bg-muted/30 grid grid-cols-2 gap-3">
+                  <div><Label className="text-xs">Status Field</Label><Input placeholder="status" value={apiForm.successField} onChange={(e) => setApiForm({ ...apiForm, successField: e.target.value })} className="text-sm" /></div>
+                  <div><Label className="text-xs">Success Value</Label><Input placeholder="Success" value={apiForm.successValue} onChange={(e) => setApiForm({ ...apiForm, successValue: e.target.value })} className="text-sm" /></div>
+                  <div><Label className="text-xs">Failed Value</Label><Input placeholder="Failed" value={apiForm.failedValue} onChange={(e) => setApiForm({ ...apiForm, failedValue: e.target.value })} className="text-sm" /></div>
+                  <div><Label className="text-xs">Pending Value</Label><Input placeholder="Pending" value={apiForm.pendingValue} onChange={(e) => setApiForm({ ...apiForm, pendingValue: e.target.value })} className="text-sm" /></div>
+                  <div><Label className="text-xs">Txn ID Field</Label><Input placeholder="txnid" value={apiForm.txnIdField} onChange={(e) => setApiForm({ ...apiForm, txnIdField: e.target.value })} className="text-sm" /></div>
+                  <div><Label className="text-xs">Balance Field</Label><Input placeholder="balance" value={apiForm.balanceField} onChange={(e) => setApiForm({ ...apiForm, balanceField: e.target.value })} className="text-sm" /></div>
+                  <div className="col-span-2"><Label className="text-xs">Message Field</Label><Input placeholder="status_msg" value={apiForm.messageField} onChange={(e) => setApiForm({ ...apiForm, messageField: e.target.value })} className="text-sm" /></div>
                 </div>
               </div>
 
@@ -404,7 +428,7 @@ const APIConfigurationEnhanced = () => {
                 <Label htmlFor="apiActive">Active</Label>
               </div>
 
-              <Button type="submit" className="w-full bg-accent hover:bg-accent-hover">
+              <Button type="submit" className="w-full bg-accent hover:bg-accent-hover" data-testid="api-submit-btn">
                 {editingAPI ? 'Update API' : 'Create API'}
               </Button>
             </form>
