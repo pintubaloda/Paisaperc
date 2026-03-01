@@ -34,6 +34,7 @@ export class WebhookService {
     if (!transaction) throw new NotFoundException('Transaction not found');
 
     const incomingStatus = data.status?.toLowerCase();
+    await this.txnEvents.log(data.txnId, 'webhook_received', `Webhook received: status=${incomingStatus}, ref=${data.providerRef || 'N/A'}`, transaction.status, { webhookData: data });
 
     // Failed txn receiving success webhook → DISPUTE
     if (transaction.status === TransactionStatus.FAILED && incomingStatus === 'success') {
