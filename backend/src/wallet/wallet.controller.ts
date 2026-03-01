@@ -35,6 +35,20 @@ export class WalletController {
     return this.walletService.getAllLedgerEntries(limit ? parseInt(limit) : 1000);
   }
 
+  @Get('ledger-report')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async getLedgerReport(
+    @Query('userId') userId?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.walletService.getLedgerReport({
+      userId, startDate, endDate, limit: limit ? parseInt(limit) : 5000,
+    });
+  }
+
   @Get('user/:userId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
