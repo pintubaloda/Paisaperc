@@ -214,4 +214,48 @@ export class UpdateAPIDto {
   @IsOptional()
   @IsString()
   messageField?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isSandbox?: boolean;
+
+  @IsOptional()
+  @IsString()
+  statusCheckEndpoint?: string;
+
+  @IsOptional()
+  @IsString()
+  statusCheckMethod?: string;
+
+  @IsOptional()
+  @IsArray()
+  statusCheckParams?: any[];
+
+  @IsOptional()
+  @IsString()
+  callbackToken?: string;
+
+  @IsOptional()
+  @IsString()
+  sampleRequest?: string;
+
+  @IsOptional()
+  @IsString()
+  sampleResponse?: string;
+
+  @IsOptional()
+  @IsArray()
+  operatorCodes?: any[];
+
+  @IsOptional()
+  @IsArray()
+  responseMappings?: any[];
+
+  @IsOptional()
+  @IsEnum(ServiceType)
+  apiType?: ServiceType;
 }
