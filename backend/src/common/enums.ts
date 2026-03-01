@@ -11,6 +11,8 @@ export enum TransactionStatus {
   PENDING = 'pending',
   SUCCESS = 'success',
   FAILED = 'failed',
+  REFUNDED = 'refunded',
+  DISPUTE = 'dispute',
 }
 
 export enum ServiceType {
