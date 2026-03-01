@@ -7,6 +7,7 @@ import { WalletModule } from '../wallet/wallet.module';
 import { CommissionModule } from '../commission/commission.module';
 import { ApiConfigModule } from '../api-config/api-config.module';
 import { DisputeModule } from '../dispute/dispute.module';
+import { RechargeModule } from '../recharge/recharge.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { DisputeModule } from '../dispute/dispute.module';
     CommissionModule,
     ApiConfigModule,
     DisputeModule,
+    RechargeModule,
   ],
   controllers: [WebhookController],
   providers: [WebhookService],
