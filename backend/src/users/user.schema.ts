@@ -67,9 +67,6 @@ export class User extends Document {
 
   @Prop()
   apiSecret: string;
-
-  @Prop({ type: [String], default: [] })
-  allowedIps: string[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
