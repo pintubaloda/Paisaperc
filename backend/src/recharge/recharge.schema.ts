@@ -15,6 +15,9 @@ export class RechargeTransaction extends Document {
   operatorId: string;
 
   @Prop()
+  operatorName: string;
+
+  @Prop()
   apiId: string;
 
   @Prop({ required: true })

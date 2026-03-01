@@ -8,6 +8,7 @@ import { CommissionModule } from '../commission/commission.module';
 import { RoutingModule } from '../routing/routing.module';
 import { ApiConfigModule } from '../api-config/api-config.module';
 import { UsersModule } from '../users/users.module';
+import { OperatorsModule } from '../operators/operators.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UsersModule } from '../users/users.module';
     CommissionModule,
     RoutingModule,
     ApiConfigModule,
+    OperatorsModule,
     forwardRef(() => UsersModule),
   ],
   controllers: [RechargeController],
