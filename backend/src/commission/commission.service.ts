@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Commission } from './commission.schema';
-import { CreateCommissionDto } from './commission.dto';
+import { CreateCommissionDto, UpdateCommissionDto } from './commission.dto';
 import { UserRole } from '../common/enums';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -26,8 +26,20 @@ export class CommissionService {
     return this.commissionModel.find().select('-_id -__v');
   }
 
+  async update(id: string, updateDto: UpdateCommissionDto): Promise<any> {
+    const commission = await this.commissionModel.findOneAndUpdate(
+      { id },
+      updateDto,
+      { new: true },
+    ).select('-_id -__v');
+    if (!commission) {
+      throw new NotFoundException('Commission not found');
+    }
+    return commission;
+  }
+
   async calculateCommission(role: UserRole, operatorId: string, amount: number): Promise<number> {
-    const commission = await this.commissionModel.findOne({ role, operatorId });
+    const commission = await this.commissionModel.findOne({ role, operatorId, isActive: true });
     if (!commission) return 0;
 
     if (commission.commissionType === 'percentage') {
