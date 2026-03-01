@@ -187,6 +187,7 @@ const AdvancedReports = () => {
                   <thead>
                     <tr className="border-b">
                       <th className="text-left p-3 font-medium">ID</th>
+                      <th className="text-left p-3 font-medium">User</th>
                       <th className="text-left p-3 font-medium">Mobile</th>
                       <th className="text-left p-3 font-medium">Amount</th>
                       <th className="text-left p-3 font-medium">Error</th>
@@ -198,6 +199,7 @@ const AdvancedReports = () => {
                     {failedTxns.map((txn) => (
                       <tr key={txn.id} className="border-b hover:bg-muted/50">
                         <td className="p-3 font-mono text-xs">{txn.id.slice(0, 8)}...</td>
+                        <td className="p-3 text-sm font-medium">{txn.userName || txn.userId}</td>
                         <td className="p-3">{txn.mobile}</td>
                         <td className="p-3 font-semibold">₹{txn.amount}</td>
                         <td className="p-3 text-sm text-destructive">{txn.responseMessage || 'N/A'}</td>
