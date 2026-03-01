@@ -83,4 +83,39 @@ export class UsersService {
     
     return userObj;
   }
+
+  async updateUser(userId: string, updateData: any): Promise<any> {
+    const allowedFields = ['name', 'mobile', 'role', 'isActive', 'kycStatus', 'panCard', 'aadhaarCard', 'gstNumber', 'allowedIps'];
+    const sanitized: any = {};
+    for (const key of allowedFields) {
+      if (updateData[key] !== undefined) {
+        sanitized[key] = updateData[key];
+      }
+    }
+    const user = await this.userModel.findOneAndUpdate(
+      { id: userId },
+      sanitized,
+      { new: true },
+    ).select('-password -_id -__v');
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
+
+  async adjustWallet(userId: string, amount: number, type: string, remarks: string): Promise<any> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (type === 'credit') {
+      await this.walletService.addBalance(userId, amount, `Admin: ${remarks}`);
+    } else if (type === 'debit') {
+      await this.walletService.deductBalance(userId, amount, `Admin: ${remarks}`, uuidv4());
+    } else {
+      throw new NotFoundException('Invalid type. Must be credit or debit');
+    }
+    const wallet = await this.walletService.getWallet(userId);
+    return { message: `Wallet ${type} of ${amount} successful`, balance: wallet.balance };
+  }
 }
