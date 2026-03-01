@@ -47,6 +47,12 @@ export class RechargeTransaction extends Document {
   @Prop()
   circle: string;
 
+  @Prop()
+  apiRequest: string;
+
+  @Prop()
+  apiResponse: string;
+
   @Prop({ default: false })
   isSandbox: boolean;
 }
