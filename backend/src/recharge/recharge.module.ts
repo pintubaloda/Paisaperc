@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { RechargeController } from './recharge.controller';
 import { RechargeService } from './recharge.service';
@@ -7,6 +7,7 @@ import { WalletModule } from '../wallet/wallet.module';
 import { CommissionModule } from '../commission/commission.module';
 import { RoutingModule } from '../routing/routing.module';
 import { ApiConfigModule } from '../api-config/api-config.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { ApiConfigModule } from '../api-config/api-config.module';
     CommissionModule,
     RoutingModule,
     ApiConfigModule,
+    forwardRef(() => UsersModule),
   ],
   controllers: [RechargeController],
   providers: [RechargeService],
