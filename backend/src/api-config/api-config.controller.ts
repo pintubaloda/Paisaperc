@@ -41,8 +41,62 @@ export class ApiConfigController {
   @Roles(UserRole.ADMIN)
   async getCallbackUrl(@Param('id') id: string) {
     const api = await this.apiConfigService.findById(id);
-    const callbackUrl = `${process.env.REACT_APP_BACKEND_URL || 'https://operator-router.preview.emergentagent.com'}/api/webhooks/callback/${api.id}/${api['callbackToken']}`;
-    return { callbackUrl, token: api['callbackToken'] };
+    const baseUrl = process.env.APP_URL || 'https://operator-router.preview.emergentagent.com';
+    const callbackUrl = `${baseUrl}/api/webhooks/callback/${api.id}`;
+    return { callbackUrl };
+  }
+
+  @Post(':id/test')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async testApi(@Param('id') id: string, @Body() body: { mobile?: string; operatorCode?: string; amount?: number }) {
+    const apiConfig = await this.apiConfigService.findById(id);
+    const obj = apiConfig.toObject();
+    
+    const url = `${obj.protocol}://${obj.domain}${obj.endpoint}`;
+    const params = (obj.parameters || []).map((p: any) => {
+      let val = p.fieldValue;
+      if (p.isDynamic) {
+        if (p.fieldName === 'number' || p.fieldName === 'mobile') val = body.mobile || '9999999999';
+        else if (p.fieldName === 'op_code' || p.fieldName === 'operatorCode') val = body.operatorCode || 'TEST';
+        else if (p.fieldName === 'amount') val = String(body.amount || 10);
+        else if (p.fieldName === 'txn_id' || p.fieldName === 'clientOrderId') val = `TEST${Date.now()}`;
+      }
+      return { key: p.fieldName, value: val, isDynamic: p.isDynamic };
+    });
+
+    let fullUrl = url;
+    if (obj.method === 'GET' || obj.requestFormat === 'query_param') {
+      const qs = params.map((p: any) => `${p.key}=${encodeURIComponent(p.value)}`).join('&');
+      fullUrl = qs ? `${url}?${qs}` : url;
+    }
+
+    const headers = (obj.headers || []).map((h: any) => ({ key: h.key, value: h.value }));
+    
+    const jsonBody: any = {};
+    if (obj.method !== 'GET' && obj.requestFormat !== 'query_param') {
+      params.forEach((p: any) => { jsonBody[p.key] = p.value; });
+    }
+
+    return {
+      status: 'validated',
+      method: obj.method,
+      fullUrl,
+      headers,
+      requestBody: obj.method !== 'GET' ? jsonBody : null,
+      parameters: params,
+      requestFormat: obj.requestFormat || 'query_param',
+      responseMapping: {
+        successField: obj.successField || 'status',
+        successValue: obj.successValue || 'Success',
+        failedValue: obj.failedValue || 'Failed',
+        pendingValue: obj.pendingValue || 'Pending',
+        txnIdField: obj.txnIdField || 'txnid',
+        balanceField: obj.balanceField || 'balance',
+        messageField: obj.messageField || 'status_msg',
+      },
+      note: 'This shows the actual request that would be sent to the provider. No live call made.',
+    };
   }
 
   @Put(':id')
