@@ -12,6 +12,10 @@ import RechargePage from './pages/RechargePage';
 import WalletPage from './pages/WalletPage';
 import AdminDashboard from './pages/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
+import OperatorsManagement from './pages/admin/OperatorsManagement';
+import APIConfiguration from './pages/admin/APIConfiguration';
+import CommissionManagement from './pages/admin/CommissionManagement';
+import AdvancedReports from './pages/admin/AdvancedReports';
 import './App.css';
 
 function App() {
@@ -35,10 +39,10 @@ function App() {
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="users" element={<UserManagement />} />
-            <Route path="operators" element={<div className="text-center py-12">✅ Operators Management - Full CRUD UI Implemented</div>} />
-            <Route path="api-config" element={<div className="text-center py-12">✅ API Configuration - Dynamic API Setup Implemented</div>} />
-            <Route path="commission" element={<div className="text-center py-12">✅ Commission Management - Role/Operator Based Implemented</div>} />
-            <Route path="reports" element={<div className="text-center py-12">✅ Advanced Reports - Date Filters & Export Implemented</div>} />
+            <Route path="operators" element={<OperatorsManagement />} />
+            <Route path="api-config" element={<APIConfiguration />} />
+            <Route path="commission" element={<CommissionManagement />} />
+            <Route path="reports" element={<AdvancedReports />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
