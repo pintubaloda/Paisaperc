@@ -174,6 +174,7 @@ const LiveTransactions = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-muted/50 rounded"><p className="text-xs text-muted-foreground">Transaction ID</p><p className="font-mono text-xs break-all">{selectedTxn.id}</p></div>
                 <div className="p-3 bg-muted/50 rounded"><p className="text-xs text-muted-foreground">Status</p><Badge className={statusColor(selectedTxn.status)}>{selectedTxn.status?.toUpperCase()}</Badge></div>
+                <div className="p-3 bg-muted/50 rounded"><p className="text-xs text-muted-foreground">User</p><p className="font-medium">{selectedTxn.userName || selectedTxn.userId}</p></div>
                 <div className="p-3 bg-muted/50 rounded"><p className="text-xs text-muted-foreground">Mobile</p><p className="font-medium">{selectedTxn.mobile}</p></div>
                 <div className="p-3 bg-muted/50 rounded"><p className="text-xs text-muted-foreground">Amount</p><p className="font-bold text-accent">₹{selectedTxn.amount}</p></div>
                 <div className="p-3 bg-muted/50 rounded"><p className="text-xs text-muted-foreground">Commission</p><p className="font-medium">₹{selectedTxn.commission || 0}</p></div>
