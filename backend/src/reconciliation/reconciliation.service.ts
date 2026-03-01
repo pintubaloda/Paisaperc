@@ -4,6 +4,8 @@ import { Model } from 'mongoose';
 import { RechargeTransaction } from '../recharge/recharge.schema';
 import { TransactionStatus } from '../common/enums';
 import { v4 as uuidv4 } from 'uuid';
+import * as csv from 'csv-parser';
+import { Readable } from 'stream';
 
 @Injectable()
 export class ReconciliationService implements OnModuleInit {
@@ -14,7 +16,6 @@ export class ReconciliationService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    // Run reconciliation every 10 minutes
     this.intervalId = setInterval(() => this.runReconciliation(), 10 * 60 * 1000);
   }
 
@@ -22,7 +23,6 @@ export class ReconciliationService implements OnModuleInit {
     const now = new Date();
     const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000);
 
-    // Find stale pending transactions (older than 30 mins)
     const stalePending = await this.rechargeModel.find({
       status: TransactionStatus.PENDING,
       createdAt: { $lt: thirtyMinAgo },
@@ -63,5 +63,86 @@ export class ReconciliationService implements OnModuleInit {
       todayCommission: todayVolume[0]?.commission || 0,
       lastRun: new Date().toISOString(),
     };
+  }
+
+  async importProviderReport(fileBuffer: Buffer, fileName: string): Promise<any> {
+    const results: any[] = [];
+    const matched: any[] = [];
+    const mismatched: any[] = [];
+    const notFound: any[] = [];
+
+    return new Promise((resolve, reject) => {
+      const stream = Readable.from(fileBuffer);
+      stream
+        .pipe(csv())
+        .on('data', (row) => {
+          results.push(row);
+        })
+        .on('end', async () => {
+          for (const row of results) {
+            const txnId = row.txnId || row.txn_id || row.transaction_id || row.TransactionID || '';
+            const providerRef = row.providerRef || row.provider_ref || row.ProviderRef || row.ReferenceID || '';
+            const providerStatus = (row.status || row.Status || '').toLowerCase();
+            const providerAmount = parseFloat(row.amount || row.Amount || '0');
+
+            if (!txnId && !providerRef) continue;
+
+            let txn: any = null;
+            if (txnId) {
+              txn = await this.rechargeModel.findOne({ id: txnId }).lean();
+            }
+            if (!txn && providerRef) {
+              txn = await this.rechargeModel.findOne({ providerRef }).lean();
+            }
+
+            if (!txn) {
+              notFound.push({ txnId, providerRef, providerStatus, providerAmount });
+              continue;
+            }
+
+            const ourStatus = (txn as any).status;
+            const ourAmount = (txn as any).amount;
+
+            let statusMatch = false;
+            if (providerStatus.includes('success') && ourStatus === 'success') statusMatch = true;
+            if (providerStatus.includes('fail') && ourStatus === 'failed') statusMatch = true;
+            if (providerStatus.includes('pending') && ourStatus === 'pending') statusMatch = true;
+
+            const amountMatch = !providerAmount || providerAmount === ourAmount;
+
+            if (statusMatch && amountMatch) {
+              matched.push({
+                txnId: (txn as any).id,
+                ourStatus,
+                providerStatus,
+                amount: ourAmount,
+              });
+            } else {
+              mismatched.push({
+                txnId: (txn as any).id,
+                ourStatus,
+                providerStatus,
+                ourAmount,
+                providerAmount,
+                providerRef: (txn as any).providerRef,
+              });
+            }
+          }
+
+          resolve({
+            fileName,
+            totalRows: results.length,
+            matched: matched.length,
+            mismatched: mismatched.length,
+            notFound: notFound.length,
+            mismatchedDetails: mismatched,
+            notFoundDetails: notFound,
+            importedAt: new Date().toISOString(),
+          });
+        })
+        .on('error', (err) => {
+          reject(err);
+        });
+    });
   }
 }
