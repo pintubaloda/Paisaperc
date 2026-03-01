@@ -35,19 +35,6 @@ export class RechargeController {
     return this.rechargeService.getStats();
   }
 
-  @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  async getTransaction(@Param('id') id: string) {
-    return this.rechargeService.getTransactionById(id);
-  }
-
-  @Post(':id/retry')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  async retryTransaction(@Param('id') id: string) {
-    return this.rechargeService.retryFailedTransaction(id);
-  }
-
   @Get('failed/list')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
@@ -60,5 +47,32 @@ export class RechargeController {
   @Roles(UserRole.ADMIN)
   async getPendingTransactions(@Query('limit') limit?: string) {
     return this.rechargeService.getPendingTransactions(limit ? parseInt(limit) : 100);
+  }
+
+  @Post('bulk-test')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async bulkMockRecharge(
+    @Body() body: { userId: string; count: number; operators: string[] },
+  ) {
+    return this.rechargeService.bulkMockRecharge(
+      body.userId,
+      UserRole.RETAILER,
+      body.count || 100,
+      body.operators || [],
+    );
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async getTransaction(@Param('id') id: string) {
+    return this.rechargeService.getTransactionById(id);
+  }
+
+  @Post(':id/retry')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async retryTransaction(@Param('id') id: string) {
+    return this.rechargeService.retryFailedTransaction(id);
   }
 }
