@@ -41,7 +41,7 @@ export class ApiConfigController {
   @Roles(UserRole.ADMIN)
   async getCallbackUrl(@Param('id') id: string) {
     const api = await this.apiConfigService.findById(id);
-    const baseUrl = process.env.APP_URL || 'https://operator-router.preview.emergentagent.com';
+    const baseUrl = process.env.APP_URL || 'https://instant-topup-5.preview.emergentagent.com';
     const callbackUrl = `${baseUrl}/api/webhooks/callback/${api.id}`;
     return { callbackUrl };
   }
