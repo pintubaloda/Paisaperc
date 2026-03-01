@@ -20,7 +20,7 @@ import { GatewayModule } from './gateway/gateway.module';
 import { QueueModule } from './queue/queue.module';
 import { ReconciliationModule } from './reconciliation/reconciliation.module';
 import { ReportsModule } from './reports/reports.module';
-import { OperatorApiMappingModule } from './operator-api-mapping/operator-api-mapping.module';
+import { OperatorAPIMappingModule } from './operator-api-mapping/operator-api-mapping.module';
 import { PaymentRequestsModule } from './payment-requests/payment-requests.module';
 
 @Module({
@@ -45,7 +45,7 @@ import { PaymentRequestsModule } from './payment-requests/payment-requests.modul
     QueueModule,
     ReconciliationModule,
     ReportsModule,
-    OperatorApiMappingModule,
+    OperatorAPIMappingModule,
     PaymentRequestsModule,
   ],
   providers: [
