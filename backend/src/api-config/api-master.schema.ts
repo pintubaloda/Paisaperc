@@ -106,6 +106,19 @@ export class APIMaster extends Document {
   @Prop()
   messageField: string;
 
+  // Status Check API fields
+  @Prop()
+  statusCheckEndpoint: string;
+
+  @Prop()
+  statusCheckMethod: string;
+
+  @Prop({ type: [APIParameter], default: [] })
+  statusCheckParams: APIParameter[];
+
+  @Prop({ default: false })
+  isSandbox: boolean;
+
   @Prop({ default: true })
   isActive: boolean;
 

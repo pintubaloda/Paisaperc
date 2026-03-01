@@ -26,6 +26,9 @@ export class RechargeTransaction extends Document {
   @Prop({ default: 0 })
   commission: number;
 
+  @Prop({ default: 0 })
+  refundAmount: number;
+
   @Prop({ type: String, enum: TransactionStatus, default: TransactionStatus.INIT })
   status: TransactionStatus;
 
@@ -40,6 +43,9 @@ export class RechargeTransaction extends Document {
 
   @Prop()
   circle: string;
+
+  @Prop({ default: false })
+  isSandbox: boolean;
 }
 
 export const RechargeTransactionSchema = SchemaFactory.createForClass(RechargeTransaction);
