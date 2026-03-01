@@ -163,6 +163,9 @@ const LiveTransactions = () => {
                         {txn.status === 'failed' && (
                           <Button size="sm" variant="outline" onClick={() => handleRetry(txn.id)} data-testid={`retry-txn-${txn.id}`}><RotateCcw className="w-4 h-4" /></Button>
                         )}
+                        {txn.status === 'pending' && (
+                          <Button size="sm" variant="outline" className="text-yellow-600" onClick={() => handleCheckStatus(txn.id)} data-testid={`check-txn-${txn.id}`}><RefreshCw className="w-4 h-4" /></Button>
+                        )}
                       </div>
                     </td>
                   </tr>
