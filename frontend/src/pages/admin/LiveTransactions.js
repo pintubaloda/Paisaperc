@@ -128,6 +128,7 @@ const LiveTransactions = () => {
               <thead>
                 <tr className="border-b">
                   <th className="text-left p-3 font-medium">Txn ID</th>
+                  <th className="text-left p-3 font-medium">User</th>
                   <th className="text-left p-3 font-medium">Mobile</th>
                   <th className="text-left p-3 font-medium">Amount</th>
                   <th className="text-left p-3 font-medium">Status</th>
@@ -140,6 +141,7 @@ const LiveTransactions = () => {
                 {filtered.map((txn) => (
                   <tr key={txn.id} className="border-b hover:bg-muted/50" data-testid={`txn-row-${txn.id}`}>
                     <td className="p-3 font-mono text-xs">{txn.id?.substring(0, 12)}...</td>
+                    <td className="p-3 text-sm font-medium">{txn.userName || txn.userId}</td>
                     <td className="p-3 font-medium">{txn.mobile}</td>
                     <td className="p-3 font-semibold">₹{txn.amount}</td>
                     <td className="p-3"><Badge className={statusColor(txn.status)}>{txn.status?.toUpperCase()}</Badge></td>
@@ -156,7 +158,7 @@ const LiveTransactions = () => {
                   </tr>
                 ))}
                 {filtered.length === 0 && (
-                  <tr><td colSpan="7" className="text-center text-muted-foreground py-8">No transactions found</td></tr>
+                  <tr><td colSpan="8" className="text-center text-muted-foreground py-8">No transactions found</td></tr>
                 )}
               </tbody>
             </table>
