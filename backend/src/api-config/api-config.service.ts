@@ -56,4 +56,32 @@ export class ApiConfigService {
   async getActiveAPIs(apiType: ServiceType): Promise<APIMaster[]> {
     return this.apiModel.find({ apiType, isActive: true });
   }
+
+  async updateOperatorCodes(id: string, operatorCodes: any[]): Promise<any> {
+    const api = await this.apiModel.findOneAndUpdate(
+      { id },
+      { operatorCodes },
+      { new: true }
+    ).select('-_id -__v');
+    if (!api) {
+      throw new NotFoundException('API not found');
+    }
+    return api;
+  }
+
+  async updateResponseMappings(id: string, data: any): Promise<any> {
+    const api = await this.apiModel.findOneAndUpdate(
+      { id },
+      {
+        responseMappings: data.responseMappings,
+        sampleRequest: data.sampleRequest,
+        sampleResponse: data.sampleResponse,
+      },
+      { new: true }
+    ).select('-_id -__v');
+    if (!api) {
+      throw new NotFoundException('API not found');
+    }
+    return api;
+  }
 }
