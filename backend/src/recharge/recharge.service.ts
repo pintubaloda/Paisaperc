@@ -411,8 +411,10 @@ export class RechargeService {
           txnId,
         );
       }
+      await this.txnEvents.log(txnId, 'status_resolved', 'Sandbox status check → Success', 'success');
     } else if (rand < 0.8) {
       // Still pending - no change
+      await this.txnEvents.log(txnId, 'status_still_pending', 'Sandbox status check → Still Pending', 'pending');
     } else {
       transaction.status = TransactionStatus.FAILED;
       transaction.responseCode = '01';
@@ -424,6 +426,7 @@ export class RechargeService {
         `Refund ₹${transaction.amount} for failed TXN ${txnId}`,
         txnId,
       );
+      await this.txnEvents.log(txnId, 'status_resolved', `Sandbox status check → Failed | Refunded ₹${transaction.amount}`, 'failed');
     }
     await transaction.save();
   }
