@@ -230,6 +230,37 @@ const LiveTransactions = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Change Status Dialog */}
+      <Dialog open={!!changeStatusTxn} onOpenChange={(open) => !open && setChangeStatusTxn(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Change Transaction Status</DialogTitle></DialogHeader>
+          {changeStatusTxn && (
+            <div className="space-y-4" data-testid="change-status-dialog-live">
+              <p className="text-sm">Txn: <span className="font-mono">{changeStatusTxn.id?.slice(0, 12)}...</span> | ₹{changeStatusTxn.amount} | Current: <Badge className={statusColor(changeStatusTxn.status)}>{changeStatusTxn.status}</Badge></p>
+              <div className="space-y-2">
+                <Label>New Status</Label>
+                <Select value={newStatus} onValueChange={setNewStatus}>
+                  <SelectTrigger data-testid="live-select-new-status"><SelectValue placeholder="Select new status" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="success">Success</SelectItem>
+                    <SelectItem value="failed">Failed</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="refunded">Refunded</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Admin Note</Label>
+                <Textarea placeholder="Reason for status change..." value={statusNote} onChange={e => setStatusNote(e.target.value)} data-testid="live-admin-note" />
+              </div>
+              <Button onClick={handleChangeStatus} disabled={!newStatus} className="w-full" data-testid="live-confirm-status-btn">
+                Confirm Status Change
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
