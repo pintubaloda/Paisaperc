@@ -1,0 +1,196 @@
+{
+  "theme_strategy": {
+    "primary_theme": "light",
+    "theme_toggle": true,
+    "mode": "system-default",
+    "emotional_archetype": "The Performance Pro (Trust & Precision)"
+  },
+  "typography": {
+    "fonts": {
+      "headings": {
+        "family": "Manrope",
+        "weights": ["600", "700", "800"],
+        "tracking": "-0.02em",
+        "usage": "Use for all H1-H6. Tight tracking for H1/H2."
+      },
+      "body": {
+        "family": "IBM Plex Sans",
+        "weights": ["400", "500", "600"],
+        "leading": "relaxed",
+        "usage": "Use for paragraphs, inputs, and data tables."
+      },
+      "code": {
+        "family": "JetBrains Mono",
+        "weights": ["400"],
+        "usage": "Use for API keys, transaction IDs, and logs."
+      }
+    },
+    "installation": {
+        "instructions": "Import fonts via Google Fonts in index.css",
+        "import_url": "@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono&family=Manrope:wght@400;600;700;800&display=swap');"
+    }
+  },
+  "colors": {
+    "palette": {
+      "primary": {
+        "DEFAULT": "#0F172A",
+        "foreground": "#F8FAFC",
+        "hover": "#1E293B",
+        "description": "Deep Navy/Slate 900 for authority and trust."
+      },
+      "secondary": {
+        "DEFAULT": "#F1F5F9",
+        "foreground": "#0F172A",
+        "hover": "#E2E8F0",
+        "description": "Slate 100 for backgrounds and subtle containers."
+      },
+      "accent": {
+        "DEFAULT": "#10B981",
+        "foreground": "#FFFFFF",
+        "hover": "#059669",
+        "description": "Emerald Green for success, money, and growth."
+      },
+      "destructive": {
+        "DEFAULT": "#EF4444",
+        "foreground": "#FFFFFF",
+        "description": "Red 500 for errors and critical warnings."
+      },
+      "background": {
+        "light": "#FFFFFF",
+        "dark": "#020617",
+        "subtle_light": "#F8FAFC",
+        "subtle_dark": "#0F172A"
+      },
+      "text": {
+        "main": "#0F172A",
+        "muted": "#64748B",
+        "inverted": "#FFFFFF"
+      }
+    },
+    "gradients": {
+      "hero_overlay": "linear-gradient(to bottom right, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.8))",
+      "glass_surface": "linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.3) 100%)"
+    },
+    "forbidden_colors": ["#7351B7", "#1B93A4"]
+  },
+  "layout_strategies": {
+    "landing_page": {
+      "grid_mode": "Tetris Grid (Mode A)",
+      "spacing": "Generous (2x standard)",
+      "container_style": "Max-width 7xl, centered, px-6 md:px-12",
+      "visual_style": "High contrast, large typography, asymmetrical hero"
+    },
+    "dashboard": {
+      "grid_mode": "Bento Grid (Mode B - High Density)",
+      "spacing": "Compact (p-4 to p-6)",
+      "visual_style": "Card-based, clear hierarchy, data-first",
+      "sidebar": "Collapsible, dark themed for contrast"
+    }
+  },
+  "component_rules": {
+    "shadcn_customization": {
+      "radius": "0.3rem",
+      "shadows": "shadow-sm for cards, shadow-md for dropdowns",
+      "inputs": "bg-background border-input ring-offset-background placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary",
+      "buttons": "font-medium tracking-wide"
+    },
+    "specific_components": {
+      "cards": {
+        "style": "bg-card text-card-foreground border shadow-sm",
+        "hover": "hover:shadow-md transition-shadow duration-200"
+      },
+      "tables": {
+        "header": "bg-muted/50 font-medium",
+        "row": "hover:bg-muted/50 data-[state=selected]:bg-muted",
+        "cell": "p-4 align-middle"
+      },
+      "dialogs": {
+        "overlay": "bg-black/80 backdrop-blur-sm"
+      },
+      "toasts": {
+        "library": "sonner",
+        "position": "bottom-right"
+      }
+    }
+  },
+  "visual_enhancers": {
+    "textures": {
+      "noise": "url('/assets/noise.png') opacity-5",
+      "dots": "radial-gradient(#cbd5e1 1px, transparent 1px) [background-size:16px_16px]"
+    },
+    "surfaces": {
+      "glass": "bg-white/70 backdrop-blur-xl border border-white/20 shadow-sm",
+      "panel": "bg-white border border-slate-200 shadow-sm"
+    },
+    "motion": {
+      "micro_interactions": "active:scale-95 transition-transform duration-100",
+      "page_transition": "animate-in fade-in slide-in-from-bottom-4 duration-500",
+      "stagger_list": "child-delay-100"
+    }
+  },
+  "images_and_assets": {
+    "hero_section": {
+      "url": "https://images.unsplash.com/photo-1677078610152-8a627d8ced8d?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "alt": "Fintech team collaboration",
+      "usage": "Hero background or main visual"
+    },
+    "features": {
+      "recharge": {
+        "url": "https://images.unsplash.com/photo-1594025741613-c039c2c3bffa?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "alt": "Mobile recharge concept"
+      },
+      "security": {
+        "url": "https://images.unsplash.com/photo-1696013910376-c56f76dd8178?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "alt": "Security padlock"
+      },
+      "partnership": {
+        "url": "https://images.unsplash.com/photo-1758599543152-a73184816eba?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "alt": "Business partnership handshake"
+      }
+    },
+    "logos": [
+      {
+        "url": "https://images.unsplash.com/photo-1764601842167-ba701eed47f5?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "alt": "Partner Cube Logo"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1765046255505-083da4b856c8?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "alt": "Partner Wave Logo"
+      }
+    ]
+  },
+  "accessibility_checklist": [
+    "Ensure 4.5:1 contrast ratio for normal text",
+    "Use semantic HTML (header, main, footer, article)",
+    "All interactive elements must have focus states",
+    "Images must have descriptive alt text",
+    "Form inputs must have associated labels",
+    "Do not rely on color alone to convey meaning"
+  ],
+  "universal_guidelines": {
+    "design_philosophy": "Fusion over Imitation. Emotion First. Content is King.",
+    "layout_rules": [
+        "Do not center-align the app container",
+        "Use 2-3x more spacing than typical",
+        "Grid items must be direct children",
+        "Containers with borders must have internal padding"
+    ],
+    "interaction_rules": [
+        "Add hover states to all interactive elements",
+        "Use Sonner for toasts",
+        "Never use 'transition: all'"
+    ],
+    "testing_rules": [
+        "All interactive elements MUST include data-testid attribute in kebab-case"
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Follow the theme strategy strictly.",
+    "Use the specified fonts: Manrope for headings, IBM Plex Sans for body.",
+    "Implement the layout strategies for Landing Page (Tetris) and Dashboard (Bento).",
+    "Use the provided image URLs for their respective sections.",
+    "Ensure all components follow the Shadcn customization rules.",
+    "Prioritize accessibility and contrast.",
+    "Add data-testid to all interactive elements."
+  ]
+}
