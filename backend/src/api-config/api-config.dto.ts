@@ -144,6 +144,10 @@ export class UpdateAPIDto {
   name?: string;
 
   @IsOptional()
+  @IsEnum(ServiceType)
+  apiType?: ServiceType;
+
+  @IsOptional()
   @IsString()
   protocol?: string;
 
@@ -173,11 +177,11 @@ export class UpdateAPIDto {
 
   @IsOptional()
   @IsArray()
-  parameters?: APIParameterDto[];
+  parameters?: any[];
 
   @IsOptional()
   @IsArray()
-  headers?: APIHeaderDto[];
+  headers?: any[];
 
   @IsOptional()
   @IsString()
@@ -217,10 +221,6 @@ export class UpdateAPIDto {
 
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
   isSandbox?: boolean;
 
   @IsOptional()
@@ -254,8 +254,4 @@ export class UpdateAPIDto {
   @IsOptional()
   @IsArray()
   responseMappings?: any[];
-
-  @IsOptional()
-  @IsEnum(ServiceType)
-  apiType?: ServiceType;
 }
