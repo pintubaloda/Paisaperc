@@ -34,6 +34,14 @@ export default {
     getAllLedgers: (limit = 1000) => api.get(`/wallet/all-ledgers?limit=${limit}`),
     getUserWallet: (userId) => api.get(`/wallet/user/${userId}`),
     getUserLedger: (userId, limit = 100) => api.get(`/wallet/user/${userId}/ledger?limit=${limit}`),
+    getLedgerReport: (params = {}) => {
+      const qs = new URLSearchParams();
+      if (params.userId) qs.append('userId', params.userId);
+      if (params.startDate) qs.append('startDate', params.startDate);
+      if (params.endDate) qs.append('endDate', params.endDate);
+      if (params.limit) qs.append('limit', String(params.limit));
+      return api.get(`/wallet/ledger-report?${qs.toString()}`);
+    },
   },
   operators: {
     getAll: () => api.get('/operators'),
@@ -71,6 +79,8 @@ export default {
     getById: (id) => api.get(`/recharge/${id}`),
     getStats: () => api.get('/recharge/stats'),
     retry: (id) => api.post(`/recharge/${id}/retry`),
+    checkStatus: (id) => api.post(`/recharge/${id}/check-status`),
+    sandboxTest: (data) => api.post('/recharge/sandbox-test', data),
     getFailed: (limit = 100) => api.get(`/recharge/failed/list?limit=${limit}`),
     getPending: (limit = 100) => api.get(`/recharge/pending/list?limit=${limit}`),
   },
