@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { RechargeTransaction } from '../recharge/recharge.schema';
 import { TransactionStatus } from '../common/enums';
 import { v4 as uuidv4 } from 'uuid';
-import * as csv from 'csv-parser';
+import csvParser from 'csv-parser';
 import { Readable } from 'stream';
 
 @Injectable()
@@ -74,7 +74,7 @@ export class ReconciliationService implements OnModuleInit {
     return new Promise((resolve, reject) => {
       const stream = Readable.from(fileBuffer);
       stream
-        .pipe(csv())
+        .pipe(csvParser())
         .on('data', (row) => {
           results.push(row);
         })
