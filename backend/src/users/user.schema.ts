@@ -62,6 +62,9 @@ export class User extends Document {
   @Prop()
   apiKey: string;
 
+  @Prop({ type: [String], default: [] })
+  allowedIps: string[];
+
   @Prop()
   apiSecret: string;
 
