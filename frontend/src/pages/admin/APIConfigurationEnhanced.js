@@ -137,6 +137,16 @@ const APIConfigurationEnhanced = () => {
       endpoint: apiItem.endpoint,
       method: apiItem.method,
       parameters: apiItem.parameters || [],
+      headers: apiItem.headers || [],
+      authToken: apiItem.authToken || '',
+      requestFormat: apiItem.requestFormat || 'query_param',
+      successField: apiItem.successField || 'status',
+      successValue: apiItem.successValue || 'Success',
+      failedValue: apiItem.failedValue || 'Failed',
+      pendingValue: apiItem.pendingValue || 'Pending',
+      txnIdField: apiItem.txnIdField || 'txnid',
+      balanceField: apiItem.balanceField || 'balance',
+      messageField: apiItem.messageField || 'status_msg',
       isActive: apiItem.isActive,
     });
     setShowAPIDialog(true);
