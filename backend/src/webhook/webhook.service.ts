@@ -5,6 +5,7 @@ import { RechargeTransaction } from '../recharge/recharge.schema';
 import { WalletService } from '../wallet/wallet.service';
 import { CommissionService } from '../commission/commission.service';
 import { DisputeService } from '../dispute/dispute.service';
+import { TxnEventService } from '../recharge/txn-event.service';
 import { TransactionStatus, UserRole } from '../common/enums';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class WebhookService {
     private walletService: WalletService,
     private commissionService: CommissionService,
     private disputeService: DisputeService,
+    private txnEvents: TxnEventService,
   ) {}
 
   /**
