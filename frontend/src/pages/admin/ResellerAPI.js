@@ -335,6 +335,34 @@ Body:
               <p className="text-xs text-muted-foreground">Webhook replay protection: timestamps older than 5 minutes are rejected.</p>
             </CardContent>
           </Card>
+
+          <Card className="border-purple-200 bg-purple-50/30">
+            <CardContent className="p-4 space-y-3">
+              <h3 className="font-semibold flex items-center gap-2"><Shield className="w-4 h-4" /> Request/Response Encryption</h3>
+              <p className="text-sm text-muted-foreground">
+                For enhanced security, the API supports AES-256-CBC encryption. Add the <code className="bg-muted px-1 rounded">x-encrypted: true</code> header to enable encryption.
+              </p>
+              <div className="bg-slate-950 rounded-md p-3">
+                <pre className="text-xs text-cyan-300 font-mono">{`// Encrypted Request
+Headers:
+  x-api-key: YOUR_API_KEY
+  x-encrypted: true
+  Content-Type: application/json
+
+Body:
+{
+  "data": "iv_hex:encrypted_hex"
+}
+
+// Encrypted Response
+{
+  "data": "iv_hex:encrypted_hex",
+  "encrypted": true
+}`}</pre>
+              </div>
+              <p className="text-xs text-muted-foreground">Contact admin to receive your encryption key. Encryption is optional - regular JSON requests work without the x-encrypted header.</p>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
