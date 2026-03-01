@@ -18,13 +18,14 @@ export default {
   auth: {
     login: (data) => api.post('/auth/login', data),
     register: (data) => api.post('/auth/register', data),
-    sendOtp: (mobile) => api.post('/auth/send-otp', { mobile }),
   },
   users: {
     getMe: () => api.get('/users/me'),
     getAll: () => api.get('/users'),
     updateKyc: (data) => api.post('/users/kyc', data),
     toggleStatus: (id) => api.patch(`/users/${id}/toggle-status`),
+    update: (id, data) => api.patch(`/users/${id}`, data),
+    adjustWallet: (id, data) => api.post(`/users/${id}/adjust-wallet`, data),
   },
   wallet: {
     get: () => api.get('/wallet'),
@@ -50,19 +51,14 @@ export default {
   commission: {
     getAll: () => api.get('/commission'),
     create: (data) => api.post('/commission', data),
+    update: (id, data) => api.put(`/commission/${id}`, data),
     delete: (id) => api.delete(`/commission/${id}`),
   },
   routing: {
     getAll: () => api.get('/routing'),
     create: (data) => api.post('/routing', data),
+    update: (id, data) => api.put(`/routing/${id}`, data),
     delete: (id) => api.delete(`/routing/${id}`),
-  },
-  operatorApiMapping: {
-    getAll: () => api.get('/operator-api-mapping'),
-    getByOperator: (operatorId) => api.get(`/operator-api-mapping/operator/${operatorId}`),
-    create: (data) => api.post('/operator-api-mapping', data),
-    update: (id, data) => api.put(`/operator-api-mapping/${id}`, data),
-    delete: (id) => api.delete(`/operator-api-mapping/${id}`),
   },
   recharge: {
     create: (data) => api.post('/recharge', data),
@@ -92,11 +88,5 @@ export default {
     getAdminDashboard: () => api.get('/reports/admin-dashboard'),
     getTransactions: (limit) => api.get(`/reports/transactions?limit=${limit || 100}`),
     getLedger: (limit) => api.get(`/reports/ledger?limit=${limit || 100}`),
-  },
-  twoFactor: {
-    enable: () => api.post('/two-factor/enable'),
-    disable: () => api.delete('/two-factor/disable'),
-    verify: (code) => api.post('/two-factor/verify', { code }),
-    getStatus: () => api.get('/two-factor/status'),
   },
 };
