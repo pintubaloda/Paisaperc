@@ -134,4 +134,59 @@ export class RechargeService {
     };
   }
 
-  async retryFailedTransaction(txnId: string): Promise<any> {\n    const transaction = await this.rechargeModel.findOne({ id: txnId });\n    if (!transaction) {\n      throw new Error('Transaction not found');\n    }\n\n    if (transaction.status !== TransactionStatus.FAILED) {\n      throw new Error('Only failed transactions can be retried');\n    }\n\n    // Update status to pending\n    transaction.status = TransactionStatus.PENDING;\n    transaction.responseCode = null;\n    transaction.responseMessage = 'Retrying transaction';\n    await transaction.save();\n\n    // Simulate retry - in production, call actual API\n    setTimeout(async () => {\n      const success = Math.random() > 0.3; // 70% success rate\n      transaction.status = success ? TransactionStatus.SUCCESS : TransactionStatus.FAILED;\n      transaction.responseCode = success ? '00' : '01';\n      transaction.responseMessage = success ? 'Transaction successful after retry' : 'Retry failed';\n      transaction.providerRef = success ? `RETRY${Date.now()}` : transaction.providerRef;\n      await transaction.save();\n    }, 2000);\n\n    const obj = transaction.toObject();\n    delete obj._id;\n    delete obj.__v;\n    return obj;\n  }\n\n  async checkTransactionStatus(txnId: string): Promise<any> {\n    const transaction = await this.rechargeModel.findOne({ id: txnId }).select('-_id -__v');\n    if (!transaction) {\n      throw new Error('Transaction not found');\n    }\n    return transaction;\n  }\n\n  async getFailedTransactions(limit: number = 100): Promise<any[]> {\n    return this.rechargeModel\n      .find({ status: TransactionStatus.FAILED })\n      .sort({ createdAt: -1 })\n      .limit(limit)\n      .select('-_id -__v');\n  }\n\n  async getPendingTransactions(limit: number = 100): Promise<any[]> {\n    return this.rechargeModel\n      .find({ status: TransactionStatus.PENDING })\n      .sort({ createdAt: -1 })\n      .limit(limit)\n      .select('-_id -__v');\n  }\n}
+  async retryFailedTransaction(txnId: string): Promise<any> {
+    const transaction = await this.rechargeModel.findOne({ id: txnId });
+    if (!transaction) {
+      throw new Error('Transaction not found');
+    }
+
+    if (transaction.status !== TransactionStatus.FAILED) {
+      throw new Error('Only failed transactions can be retried');
+    }
+
+    // Update status to pending
+    transaction.status = TransactionStatus.PENDING;
+    transaction.responseCode = null;
+    transaction.responseMessage = 'Retrying transaction';
+    await transaction.save();
+
+    // Simulate retry - in production, call actual API
+    setTimeout(async () => {
+      const success = Math.random() > 0.3; // 70% success rate
+      transaction.status = success ? TransactionStatus.SUCCESS : TransactionStatus.FAILED;
+      transaction.responseCode = success ? '00' : '01';
+      transaction.responseMessage = success ? 'Transaction successful after retry' : 'Retry failed';
+      transaction.providerRef = success ? `RETRY${Date.now()}` : transaction.providerRef;
+      await transaction.save();
+    }, 2000);
+
+    const obj = transaction.toObject();
+    delete obj._id;
+    delete obj.__v;
+    return obj;
+  }
+
+  async checkTransactionStatus(txnId: string): Promise<any> {
+    const transaction = await this.rechargeModel.findOne({ id: txnId }).select('-_id -__v');
+    if (!transaction) {
+      throw new Error('Transaction not found');
+    }
+    return transaction;
+  }
+
+  async getFailedTransactions(limit: number = 100): Promise<any[]> {
+    return this.rechargeModel
+      .find({ status: TransactionStatus.FAILED })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .select('-_id -__v');
+  }
+
+  async getPendingTransactions(limit: number = 100): Promise<any[]> {
+    return this.rechargeModel
+      .find({ status: TransactionStatus.PENDING })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .select('-_id -__v');
+  }
+}
