@@ -22,8 +22,8 @@ export class RechargeController {
 
   @Get('my')
   @UseGuards(JwtAuthGuard)
-  async myTransactions(@Request() req) {
-    return this.rechargeService.getTransactions(req.user.id);
+  async myTransactions(@Request() req, @Query('limit') limit: string) {
+    return this.rechargeService.getTransactions(req.user.id, parseInt(limit) || 100);
   }
 
   @Get('all')
