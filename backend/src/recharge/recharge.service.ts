@@ -750,6 +750,7 @@ export class RechargeService {
     transaction.status = newStatus as TransactionStatus;
     transaction.responseMessage = `${adminNote || ''} [Admin changed: ${oldStatus} → ${newStatus}]`;
     await transaction.save();
+    await this.txnEvents.log(txnId, 'admin_status_change', `Admin changed status: ${oldStatus} → ${newStatus} | Note: ${adminNote || 'N/A'}`, newStatus, { oldStatus, newStatus, adminId });
 
     const obj = transaction.toObject();
     delete obj._id;
