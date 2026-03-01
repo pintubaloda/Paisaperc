@@ -14,8 +14,8 @@ export class RoutingRule extends Document {
   @Prop()
   operatorId: string;
 
-  @Prop({ required: true })
-  apiId: string;
+  @Prop({ type: [String], default: [] })
+  apiPriority: string[];
 
   @Prop({ default: 0 })
   minAmount: number;
@@ -23,8 +23,8 @@ export class RoutingRule extends Document {
   @Prop({ default: 999999 })
   maxAmount: number;
 
-  @Prop({ default: 1 })
-  priority: number;
+  @Prop({ default: true })
+  isActive: boolean;
 }
 
 export const RoutingRuleSchema = SchemaFactory.createForClass(RoutingRule);

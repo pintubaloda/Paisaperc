@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { RoutingService } from './routing.service';
-import { CreateRoutingRuleDto } from './routing.dto';
+import { CreateRoutingRuleDto, UpdateRoutingRuleDto } from './routing.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -22,6 +22,13 @@ export class RoutingController {
   @Roles(UserRole.ADMIN)
   async findAll() {
     return this.routingService.findAll();
+  }
+
+  @Put(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async update(@Param('id') id: string, @Body() updateDto: UpdateRoutingRuleDto) {
+    return this.routingService.update(id, updateDto);
   }
 
   @Delete(':id')

@@ -1,4 +1,4 @@
-import { IsEnum, IsString, IsNumber, IsOptional } from 'class-validator';
+import { IsEnum, IsString, IsNumber, IsOptional, IsArray, IsBoolean } from 'class-validator';
 import { UserRole } from '../common/enums';
 
 export class CreateRoutingRuleDto {
@@ -10,8 +10,32 @@ export class CreateRoutingRuleDto {
   @IsString()
   operatorId?: string;
 
+  @IsArray()
+  @IsString({ each: true })
+  apiPriority: string[];
+
+  @IsOptional()
+  @IsNumber()
+  minAmount?: number;
+
+  @IsOptional()
+  @IsNumber()
+  maxAmount?: number;
+}
+
+export class UpdateRoutingRuleDto {
+  @IsOptional()
+  @IsEnum(UserRole)
+  role?: UserRole;
+
+  @IsOptional()
   @IsString()
-  apiId: string;
+  operatorId?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  apiPriority?: string[];
 
   @IsOptional()
   @IsNumber()
@@ -22,6 +46,6 @@ export class CreateRoutingRuleDto {
   maxAmount?: number;
 
   @IsOptional()
-  @IsNumber()
-  priority?: number;
+  @IsBoolean()
+  isActive?: boolean;
 }
