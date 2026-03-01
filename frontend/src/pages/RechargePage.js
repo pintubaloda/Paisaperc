@@ -32,7 +32,10 @@ const RechargePage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.recharge.create(formData);
+      await api.recharge.create({
+        ...formData,
+        amount: parseFloat(formData.amount),
+      });
       toast.success('Recharge successful!');
       setFormData({ operatorId: '', mobile: '', amount: '', circle: '' });
     } catch (error) {
