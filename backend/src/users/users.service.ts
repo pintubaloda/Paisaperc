@@ -53,7 +53,7 @@ export class UsersService {
   }
 
   async findAll(): Promise<any[]> {
-    const users = await this.userModel.find().select('-password -_id -__v');
+    const users = await this.userModel.find().select('-password -apiSecret -_id -__v');
     return users;
   }
 
