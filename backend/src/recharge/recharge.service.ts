@@ -373,8 +373,10 @@ export class RechargeService {
     }
 
     if (transaction.isSandbox) {
+      await this.txnEvents.log(txnId, 'status_check', 'Status check initiated (sandbox)', 'pending');
       await this.resolveSandboxStatus(transaction, txnId);
     } else if (transaction.apiId) {
+      await this.txnEvents.log(txnId, 'status_check', 'Status check initiated via provider API', 'pending');
       await this.resolveRealStatus(transaction, txnId);
     }
 
