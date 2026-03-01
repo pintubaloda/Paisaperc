@@ -24,6 +24,7 @@ const APIConfigurationEnhanced = () => {
   const [showTestDialog, setShowTestDialog] = useState(false);
   const [testResult, setTestResult] = useState(null);
   const [testing, setTesting] = useState(false);
+  const [editingAPI, setEditingAPI] = useState(null);
   
   const [apiForm, setApiForm] = useState({
     name: '',
