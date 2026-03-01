@@ -141,6 +141,10 @@ export class RechargeService {
       }
     }
 
+    // Store API request/response
+    transaction.apiRequest = apiResult.apiRequest || '';
+    transaction.apiResponse = apiResult.apiResponse || '';
+
     // STEP 3: Handle result
     const commission = await this.commissionService.calculateCommission(
       userRole,
