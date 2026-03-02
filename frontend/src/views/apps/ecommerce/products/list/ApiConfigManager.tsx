@@ -94,6 +94,29 @@ type FormState = {
   responseMappingsJson: string
 }
 
+type OperatorCodeRow = {
+  operatorId: string
+  providerCode: string
+  optional1?: string
+  optional2?: string
+  optional3?: string
+}
+
+type ResponseMappingRow = {
+  keyMessage: string
+  responseType: string
+  errorCode?: string
+  status?: string
+  txnIdStart?: string
+  txnIdEnd?: string
+  opidStart?: string
+  opidEnd?: string
+  balanceStart?: string
+  balanceEnd?: string
+  alertEnabled?: boolean
+  alertType?: string
+}
+
 const DYNAMIC_VARIABLES = [
   { key: '[number]', label: 'Mobile Number' },
   { key: '[op_code]', label: 'Operator Code' },
@@ -159,6 +182,13 @@ const ApiConfigManager = () => {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<FormState>(createDefaultForm())
   const [testResult, setTestResult] = useState<any | null>(null)
+  const [opCodesDialogOpen, setOpCodesDialogOpen] = useState(false)
+  const [responsesDialogOpen, setResponsesDialogOpen] = useState(false)
+  const [selectedApi, setSelectedApi] = useState<ApiConfig | null>(null)
+  const [operatorCodesRows, setOperatorCodesRows] = useState<OperatorCodeRow[]>([])
+  const [responseRows, setResponseRows] = useState<ResponseMappingRow[]>([])
+  const [responsesSampleRequest, setResponsesSampleRequest] = useState('')
+  const [responsesSampleResponse, setResponsesSampleResponse] = useState('')
 
   const [parameterFieldName, setParameterFieldName] = useState('')
   const [parameterValue, setParameterValue] = useState('')
@@ -262,6 +292,20 @@ const ApiConfigManager = () => {
       responseMappingsJson: JSON.stringify(item.responseMappings || [], null, 2)
     })
     setDialogOpen(true)
+  }
+
+  const openOpCodesDialog = (item: ApiConfig) => {
+    setSelectedApi(item)
+    setOperatorCodesRows(Array.isArray(item.operatorCodes) ? (item.operatorCodes as OperatorCodeRow[]) : [])
+    setOpCodesDialogOpen(true)
+  }
+
+  const openResponsesDialog = (item: ApiConfig) => {
+    setSelectedApi(item)
+    setResponseRows(Array.isArray(item.responseMappings) ? (item.responseMappings as ResponseMappingRow[]) : [])
+    setResponsesSampleRequest(item.sampleRequest || '')
+    setResponsesSampleResponse(item.sampleResponse || '')
+    setResponsesDialogOpen(true)
   }
 
   const addParameter = () => {
@@ -381,6 +425,62 @@ const ApiConfigManager = () => {
     }
   }
 
+  const saveOperatorCodes = async () => {
+    if (!selectedApi || !baseUrl || !accessToken) return
+
+    try {
+      setSaving(true)
+      setError('')
+      const res = await fetch(`${baseUrl}/api-config/${selectedApi.id}/operator-codes`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ operatorCodes: operatorCodesRows })
+      })
+
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || 'Unable to save op codes')
+      }
+
+      setOpCodesDialogOpen(false)
+      await loadApiConfigs()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to save op codes')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const saveResponses = async () => {
+    if (!selectedApi || !baseUrl || !accessToken) return
+
+    try {
+      setSaving(true)
+      setError('')
+      const res = await fetch(`${baseUrl}/api-config/${selectedApi.id}/response-mappings`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          responseMappings: responseRows,
+          sampleRequest: responsesSampleRequest || undefined,
+          sampleResponse: responsesSampleResponse || undefined
+        })
+      })
+
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || 'Unable to save response mappings')
+      }
+
+      setResponsesDialogOpen(false)
+      await loadApiConfigs()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to save response mappings')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const parameterRows = parseArray(form.parametersJson)
 
   return (
@@ -445,8 +545,8 @@ const ApiConfigManager = () => {
                     <TableCell align='right'>
                       <Stack direction='row' spacing={1} justifyContent='flex-end' flexWrap='wrap' useFlexGap>
                         <Button variant='outlined' size='small' onClick={() => openEdit(item)}>Edit</Button>
-                        <Button variant='outlined' size='small' onClick={() => openEdit(item)}>Op Codes</Button>
-                        <Button variant='outlined' size='small' onClick={() => openEdit(item)}>Responses</Button>
+                        <Button variant='outlined' size='small' onClick={() => openOpCodesDialog(item)}>Op Codes</Button>
+                        <Button variant='outlined' size='small' onClick={() => openResponsesDialog(item)}>Responses</Button>
                         <Button
                           variant='outlined'
                           size='small'
@@ -638,6 +738,136 @@ const ApiConfigManager = () => {
             Cancel
           </Button>
           <Button variant='contained' onClick={saveItem} disabled={saving || !form.name.trim() || !form.domain.trim() || !form.endpoint.trim()}>
+            {saving ? 'Saving...' : 'Save'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={opCodesDialogOpen} onClose={() => setOpCodesDialogOpen(false)} maxWidth='md' fullWidth>
+        <DialogTitle>Operator Codes{selectedApi ? ` - ${selectedApi.name}` : ''}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {operatorCodesRows.map((row, index) => (
+              <Stack key={`op-${index}`} direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
+                <TextField
+                  label='Operator ID'
+                  value={row.operatorId || ''}
+                  onChange={event =>
+                    setOperatorCodesRows(prev => prev.map((item, i) => (i === index ? { ...item, operatorId: event.target.value } : item)))
+                  }
+                  fullWidth
+                />
+                <TextField
+                  label='Provider Code'
+                  value={row.providerCode || ''}
+                  onChange={event =>
+                    setOperatorCodesRows(prev => prev.map((item, i) => (i === index ? { ...item, providerCode: event.target.value } : item)))
+                  }
+                  fullWidth
+                />
+                <TextField
+                  label='Optional 1'
+                  value={row.optional1 || ''}
+                  onChange={event =>
+                    setOperatorCodesRows(prev => prev.map((item, i) => (i === index ? { ...item, optional1: event.target.value } : item)))
+                  }
+                  fullWidth
+                />
+                <IconButton
+                  color='error'
+                  onClick={() => setOperatorCodesRows(prev => prev.filter((_, i) => i !== index))}
+                >
+                  <i className='tabler-trash' />
+                </IconButton>
+              </Stack>
+            ))}
+            <Button
+              variant='tonal'
+              onClick={() =>
+                setOperatorCodesRows(prev => [...prev, { operatorId: '', providerCode: '', optional1: '', optional2: '', optional3: '' }])
+              }
+            >
+              Add Row
+            </Button>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button color='secondary' onClick={() => setOpCodesDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button variant='contained' onClick={saveOperatorCodes} disabled={saving}>
+            {saving ? 'Saving...' : 'Save'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={responsesDialogOpen} onClose={() => setResponsesDialogOpen(false)} maxWidth='lg' fullWidth>
+        <DialogTitle>Response Mappings{selectedApi ? ` - ${selectedApi.name}` : ''}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {responseRows.map((row, index) => (
+              <Stack key={`res-${index}`} direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
+                <TextField
+                  label='Key Message'
+                  value={row.keyMessage || ''}
+                  onChange={event =>
+                    setResponseRows(prev => prev.map((item, i) => (i === index ? { ...item, keyMessage: event.target.value } : item)))
+                  }
+                  fullWidth
+                />
+                <TextField
+                  label='Response Type'
+                  value={row.responseType || ''}
+                  onChange={event =>
+                    setResponseRows(prev => prev.map((item, i) => (i === index ? { ...item, responseType: event.target.value } : item)))
+                  }
+                  fullWidth
+                />
+                <TextField
+                  label='Status'
+                  value={row.status || ''}
+                  onChange={event =>
+                    setResponseRows(prev => prev.map((item, i) => (i === index ? { ...item, status: event.target.value } : item)))
+                  }
+                  fullWidth
+                />
+                <IconButton
+                  color='error'
+                  onClick={() => setResponseRows(prev => prev.filter((_, i) => i !== index))}
+                >
+                  <i className='tabler-trash' />
+                </IconButton>
+              </Stack>
+            ))}
+            <Button
+              variant='tonal'
+              onClick={() =>
+                setResponseRows(prev => [...prev, { keyMessage: '', responseType: '', status: '', errorCode: '' }])
+              }
+            >
+              Add Mapping
+            </Button>
+            <TextField
+              label='Sample Request'
+              value={responsesSampleRequest}
+              onChange={event => setResponsesSampleRequest(event.target.value)}
+              multiline
+              minRows={3}
+            />
+            <TextField
+              label='Sample Response'
+              value={responsesSampleResponse}
+              onChange={event => setResponsesSampleResponse(event.target.value)}
+              multiline
+              minRows={3}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button color='secondary' onClick={() => setResponsesDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button variant='contained' onClick={saveResponses} disabled={saving}>
             {saving ? 'Saving...' : 'Save'}
           </Button>
         </DialogActions>
