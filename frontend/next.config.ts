@@ -6,21 +6,45 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/',
-        destination: '/en/dashboards/crm',
+        destination: '/dashboards',
         permanent: true,
         locale: false
       },
       {
-        source: '/:lang(en|fr|ar)',
-        destination: '/:lang/dashboards/crm',
+        source: '/en',
+        destination: '/',
         permanent: true,
         locale: false
       },
       {
-        source: '/:path((?!en|fr|ar|front-pages|images|api|favicon.ico).*)*',
-        destination: '/en/:path*',
+        source: '/en/dashboards/:section(crm|analytics|ecommerce|academy|logistics)',
+        destination: '/dashboards',
         permanent: true,
         locale: false
+      },
+      {
+        source: '/en/:path*',
+        destination: '/:path*',
+        permanent: true,
+        locale: false
+      },
+      {
+        source: '/dashboards/:section(crm|analytics|ecommerce|academy|logistics)',
+        destination: '/dashboards',
+        permanent: true,
+        locale: false
+      }
+    ]
+  },
+  rewrites: async () => {
+    return [
+      {
+        source: '/dashboards',
+        destination: '/en/dashboards/ecommerce'
+      },
+      {
+        source: '/:path((?!en|fr|ar|front-pages|images|api|_next|favicon.ico).*)',
+        destination: '/en/:path'
       }
     ]
   }

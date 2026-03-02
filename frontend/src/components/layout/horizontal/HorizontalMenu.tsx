@@ -91,19 +91,19 @@ const HorizontalMenu = ({ dictionary }: { dictionary: Awaited<ReturnType<typeof 
         }}
       >
         <SubMenu label={dictionary['navigation'].dashboards} icon={<i className='tabler-smart-home' />}>
-          <MenuItem href={`/${locale}/dashboards/crm`} icon={<i className='tabler-chart-pie-2' />}>
+          <MenuItem href='/dashboards' icon={<i className='tabler-chart-pie-2' />}>
             {dictionary['navigation'].crm}
           </MenuItem>
-          <MenuItem href={`/${locale}/dashboards/analytics`} icon={<i className='tabler-trending-up' />}>
+          <MenuItem href='/dashboards' icon={<i className='tabler-trending-up' />}>
             {dictionary['navigation'].analytics}
           </MenuItem>
-          <MenuItem href={`/${locale}/dashboards/ecommerce`} icon={<i className='tabler-shopping-cart' />}>
+          <MenuItem href='/dashboards' icon={<i className='tabler-shopping-cart' />}>
             {dictionary['navigation'].eCommerce}
           </MenuItem>
-          <MenuItem href={`/${locale}/dashboards/academy`} icon={<i className='tabler-school' />}>
+          <MenuItem href='/dashboards' icon={<i className='tabler-school' />}>
             {dictionary['navigation'].academy}
           </MenuItem>
-          <MenuItem href={`/${locale}/dashboards/logistics`} icon={<i className='tabler-truck' />}>
+          <MenuItem href='/dashboards' icon={<i className='tabler-truck' />}>
             {dictionary['navigation'].logistics}
           </MenuItem>
         </SubMenu>
