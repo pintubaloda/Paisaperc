@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // Next Imports
 import Link from 'next/link'
@@ -71,7 +71,7 @@ const MaskImg = styled('img')({
 })
 
 type ErrorType = {
-  message: string[]
+  message: string
 }
 
 type FormData = InferInput<typeof schema>
@@ -129,6 +129,27 @@ const Login = ({ mode }: { mode: SystemMode }) => {
 
   const handleClickShowPassword = () => setIsPasswordShown(show => !show)
 
+  useEffect(() => {
+    const err = searchParams.get('error')
+
+    if (!err) return
+
+    let message = 'Invalid credentials'
+
+    if (err === 'CredentialsSignin') {
+      message = 'Invalid email or password'
+    } else {
+      try {
+        const parsed = JSON.parse(err)
+        message = parsed?.message || message
+      } catch {
+        message = err
+      }
+    }
+
+    setErrorState({ message })
+  }, [searchParams])
+
   const onSubmit: SubmitHandler<FormData> = async (data: FormData) => {
     const res = await signIn('credentials', {
       email: data.email,
@@ -142,11 +163,18 @@ const Login = ({ mode }: { mode: SystemMode }) => {
 
       router.replace(getLocalizedUrl(redirectURL, locale as Locale))
     } else {
-      if (res?.error) {
-        const error = JSON.parse(res.error)
+      let message = 'Invalid email or password'
 
-        setErrorState(error)
+      if (res?.error && res.error !== 'CredentialsSignin') {
+        try {
+          const parsed = JSON.parse(res.error)
+          message = parsed?.message || message
+        } catch {
+          message = res.error
+        }
       }
+
+      setErrorState({ message })
     }
   }
 
@@ -203,7 +231,7 @@ const Login = ({ mode }: { mode: SystemMode }) => {
                   }}
                   {...((errors.email || errorState !== null) && {
                     error: true,
-                    helperText: errors?.email?.message || errorState?.message[0]
+                    helperText: errors?.email?.message || errorState?.message
                   })}
                 />
               )}
