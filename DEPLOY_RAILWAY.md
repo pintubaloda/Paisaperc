@@ -25,6 +25,7 @@ Create three services in one Railway project:
 
 Optional:
 - `PORT` (Railway injects this automatically)
+- `AUTO_SEED_DEMO=true` (auto-create demo users/operators at startup)
 
 ## 3. Frontend Service Setup
 
@@ -52,9 +53,11 @@ Frontend does not require its own database for auth in this setup.
 4. Set `CORS_ORIGINS` on backend to frontend URL
 5. Redeploy backend once after CORS update
 
-## 5. Optional Seed Data (after backend deploy)
+## 5. Demo Data
 
-Run in backend shell:
+If you do not have shell access, set backend env `AUTO_SEED_DEMO=true` and redeploy once.
+
+If you have shell access, you can also run:
 
 ```bash
 npm run seed

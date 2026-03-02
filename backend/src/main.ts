@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
 import { PrismaService } from './prisma/prisma.service';
+import { runAutoDemoSeed } from './seed/auto-seed';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -35,6 +36,7 @@ async function bootstrap() {
 
   const prismaService = app.get(PrismaService);
   await prismaService.enableShutdownHooks(app);
+  await runAutoDemoSeed(prismaService);
 
   const port = process.env.PORT || 8001;
   await app.listen(port, '0.0.0.0');
