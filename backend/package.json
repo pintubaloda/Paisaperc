@@ -4,7 +4,7 @@
   "description": "PaisaPe Multi Recharge Platform Backend",
   "main": "dist/main.js",
   "scripts": {
-    "start": "npm run prisma:deploy && node dist/main.js",
+    "start": "npm run prisma:generate && npm run prisma:deploy && prisma db push && node dist/main.js",
     "dev": "ts-node-dev --respawn --transpile-only src/main.ts",
     "build": "tsc",
     "prisma:generate": "prisma generate",
