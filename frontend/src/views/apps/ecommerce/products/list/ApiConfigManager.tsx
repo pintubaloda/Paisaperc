@@ -52,12 +52,28 @@ type FormState = {
   endpoint: string
   method: string
   requestFormat: string
+  authToken: string
+  successField: string
+  successValue: string
+  failedValue: string
+  pendingValue: string
+  txnIdField: string
+  balanceField: string
+  messageField: string
+  statusCheckEndpoint: string
+  statusCheckMethod: string
+  callbackToken: string
+  sampleRequest: string
+  sampleResponse: string
   isActive: boolean
   isSandbox: boolean
   successRate: number
   balance: number
   parametersJson: string
   headersJson: string
+  statusCheckParamsJson: string
+  operatorCodesJson: string
+  responseMappingsJson: string
 }
 
 const createDefaultForm = (): FormState => ({
@@ -68,12 +84,28 @@ const createDefaultForm = (): FormState => ({
   endpoint: '',
   method: 'GET',
   requestFormat: 'query_param',
+  authToken: '',
+  successField: 'status',
+  successValue: 'Success',
+  failedValue: 'Failed',
+  pendingValue: 'Pending',
+  txnIdField: 'txnid',
+  balanceField: 'balance',
+  messageField: 'status_msg',
+  statusCheckEndpoint: '',
+  statusCheckMethod: 'GET',
+  callbackToken: '',
+  sampleRequest: '',
+  sampleResponse: '',
   isActive: true,
   isSandbox: false,
   successRate: 100,
   balance: 0,
   parametersJson: '[]',
-  headersJson: '[]'
+  headersJson: '[]',
+  statusCheckParamsJson: '[]',
+  operatorCodesJson: '[]',
+  responseMappingsJson: '[]'
 })
 
 const ApiConfigManager = () => {
@@ -165,12 +197,28 @@ const ApiConfigManager = () => {
       endpoint: item.endpoint || '',
       method: item.method || 'GET',
       requestFormat: item.requestFormat || 'query_param',
+      authToken: (item as any).authToken || '',
+      successField: (item as any).successField || 'status',
+      successValue: (item as any).successValue || 'Success',
+      failedValue: (item as any).failedValue || 'Failed',
+      pendingValue: (item as any).pendingValue || 'Pending',
+      txnIdField: (item as any).txnIdField || 'txnid',
+      balanceField: (item as any).balanceField || 'balance',
+      messageField: (item as any).messageField || 'status_msg',
+      statusCheckEndpoint: (item as any).statusCheckEndpoint || '',
+      statusCheckMethod: (item as any).statusCheckMethod || 'GET',
+      callbackToken: (item as any).callbackToken || '',
+      sampleRequest: (item as any).sampleRequest || '',
+      sampleResponse: (item as any).sampleResponse || '',
       isActive: Boolean(item.isActive),
       isSandbox: Boolean(item.isSandbox),
       successRate: item.successRate ?? 100,
       balance: item.balance ?? 0,
       parametersJson: JSON.stringify(item.parameters || [], null, 2),
-      headersJson: JSON.stringify(item.headers || [], null, 2)
+      headersJson: JSON.stringify(item.headers || [], null, 2),
+      statusCheckParamsJson: JSON.stringify((item as any).statusCheckParams || [], null, 2),
+      operatorCodesJson: JSON.stringify((item as any).operatorCodes || [], null, 2),
+      responseMappingsJson: JSON.stringify((item as any).responseMappings || [], null, 2)
     })
     setDialogOpen(true)
   }
@@ -184,6 +232,9 @@ const ApiConfigManager = () => {
 
       const parsedParameters = JSON.parse(form.parametersJson || '[]')
       const parsedHeaders = JSON.parse(form.headersJson || '[]')
+      const parsedStatusCheckParams = JSON.parse(form.statusCheckParamsJson || '[]')
+      const parsedOperatorCodes = JSON.parse(form.operatorCodesJson || '[]')
+      const parsedResponseMappings = JSON.parse(form.responseMappingsJson || '[]')
 
       const payload = {
         name: form.name.trim(),
@@ -193,12 +244,28 @@ const ApiConfigManager = () => {
         endpoint: form.endpoint.trim(),
         method: form.method,
         requestFormat: form.requestFormat,
+        authToken: form.authToken || undefined,
+        successField: form.successField || undefined,
+        successValue: form.successValue || undefined,
+        failedValue: form.failedValue || undefined,
+        pendingValue: form.pendingValue || undefined,
+        txnIdField: form.txnIdField || undefined,
+        balanceField: form.balanceField || undefined,
+        messageField: form.messageField || undefined,
+        statusCheckEndpoint: form.statusCheckEndpoint || undefined,
+        statusCheckMethod: form.statusCheckMethod || undefined,
+        callbackToken: form.callbackToken || undefined,
+        sampleRequest: form.sampleRequest || undefined,
+        sampleResponse: form.sampleResponse || undefined,
         isActive: form.isActive,
         isSandbox: form.isSandbox,
         successRate: Number(form.successRate || 0),
         balance: Number(form.balance || 0),
         parameters: Array.isArray(parsedParameters) ? parsedParameters : [],
-        headers: Array.isArray(parsedHeaders) ? parsedHeaders : []
+        headers: Array.isArray(parsedHeaders) ? parsedHeaders : [],
+        statusCheckParams: Array.isArray(parsedStatusCheckParams) ? parsedStatusCheckParams : [],
+        operatorCodes: Array.isArray(parsedOperatorCodes) ? parsedOperatorCodes : [],
+        responseMappings: Array.isArray(parsedResponseMappings) ? parsedResponseMappings : []
       }
 
       const url = editingId ? `${baseUrl}/api-config/${editingId}` : `${baseUrl}/api-config`
@@ -408,6 +475,55 @@ const ApiConfigManager = () => {
               />
             </Stack>
 
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <TextField
+                label='Auth Token'
+                value={form.authToken}
+                onChange={event => setForm(prev => ({ ...prev, authToken: event.target.value }))}
+                fullWidth
+              />
+              <TextField
+                label='Callback Token'
+                value={form.callbackToken}
+                onChange={event => setForm(prev => ({ ...prev, callbackToken: event.target.value }))}
+                fullWidth
+              />
+            </Stack>
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <TextField label='Success Field' value={form.successField} onChange={event => setForm(prev => ({ ...prev, successField: event.target.value }))} fullWidth />
+              <TextField label='Success Value' value={form.successValue} onChange={event => setForm(prev => ({ ...prev, successValue: event.target.value }))} fullWidth />
+              <TextField label='Failed Value' value={form.failedValue} onChange={event => setForm(prev => ({ ...prev, failedValue: event.target.value }))} fullWidth />
+            </Stack>
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <TextField label='Pending Value' value={form.pendingValue} onChange={event => setForm(prev => ({ ...prev, pendingValue: event.target.value }))} fullWidth />
+              <TextField label='Txn ID Field' value={form.txnIdField} onChange={event => setForm(prev => ({ ...prev, txnIdField: event.target.value }))} fullWidth />
+              <TextField label='Balance Field' value={form.balanceField} onChange={event => setForm(prev => ({ ...prev, balanceField: event.target.value }))} fullWidth />
+            </Stack>
+
+            <TextField
+              label='Message Field'
+              value={form.messageField}
+              onChange={event => setForm(prev => ({ ...prev, messageField: event.target.value }))}
+              fullWidth
+            />
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <TextField
+                label='Status Check Endpoint'
+                value={form.statusCheckEndpoint}
+                onChange={event => setForm(prev => ({ ...prev, statusCheckEndpoint: event.target.value }))}
+                fullWidth
+              />
+              <TextField
+                label='Status Check Method'
+                value={form.statusCheckMethod}
+                onChange={event => setForm(prev => ({ ...prev, statusCheckMethod: event.target.value }))}
+                fullWidth
+              />
+            </Stack>
+
             <Stack direction='row' spacing={2} alignItems='center'>
               <Stack direction='row' spacing={1} alignItems='center'>
                 <Typography>Active</Typography>
@@ -433,6 +549,46 @@ const ApiConfigManager = () => {
               onChange={event => setForm(prev => ({ ...prev, headersJson: event.target.value }))}
               multiline
               minRows={4}
+            />
+
+            <TextField
+              label='Status Check Params JSON'
+              value={form.statusCheckParamsJson}
+              onChange={event => setForm(prev => ({ ...prev, statusCheckParamsJson: event.target.value }))}
+              multiline
+              minRows={4}
+            />
+
+            <TextField
+              label='Operator Codes JSON'
+              value={form.operatorCodesJson}
+              onChange={event => setForm(prev => ({ ...prev, operatorCodesJson: event.target.value }))}
+              multiline
+              minRows={4}
+            />
+
+            <TextField
+              label='Response Mappings JSON'
+              value={form.responseMappingsJson}
+              onChange={event => setForm(prev => ({ ...prev, responseMappingsJson: event.target.value }))}
+              multiline
+              minRows={4}
+            />
+
+            <TextField
+              label='Sample Request'
+              value={form.sampleRequest}
+              onChange={event => setForm(prev => ({ ...prev, sampleRequest: event.target.value }))}
+              multiline
+              minRows={3}
+            />
+
+            <TextField
+              label='Sample Response'
+              value={form.sampleResponse}
+              onChange={event => setForm(prev => ({ ...prev, sampleResponse: event.target.value }))}
+              multiline
+              minRows={3}
             />
 
             {testResult ? (
