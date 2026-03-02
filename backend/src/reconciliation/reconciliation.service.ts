@@ -1,19 +1,14 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { RechargeTransaction } from '../recharge/recharge.schema';
 import { TransactionStatus } from '../common/enums';
-import { v4 as uuidv4 } from 'uuid';
 import csvParser from 'csv-parser';
 import { Readable } from 'stream';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ReconciliationService implements OnModuleInit {
   private intervalId: any;
 
-  constructor(
-    @InjectModel(RechargeTransaction.name) private rechargeModel: Model<RechargeTransaction>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   onModuleInit() {
     this.intervalId = setInterval(() => this.runReconciliation(), 10 * 60 * 1000);
@@ -23,10 +18,13 @@ export class ReconciliationService implements OnModuleInit {
     const now = new Date();
     const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000);
 
-    const stalePending = await this.rechargeModel.find({
-      status: TransactionStatus.PENDING,
-      createdAt: { $lt: thirtyMinAgo },
-    }).lean();
+    const stalePending = await this.prisma.rechargeTransaction.findMany({
+      where: {
+        status: TransactionStatus.PENDING as any,
+        createdAt: { lt: thirtyMinAgo },
+      },
+      select: { id: true },
+    });
 
     return {
       runAt: now.toISOString(),
@@ -37,20 +35,38 @@ export class ReconciliationService implements OnModuleInit {
 
   async getReport(): Promise<any> {
     const now = new Date();
-    const today = new Date(now); today.setHours(0, 0, 0, 0);
+    const today = new Date(now);
+    today.setHours(0, 0, 0, 0);
     const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000);
 
-    const [totalPending, stalePending, todaySuccess, todayFailed, todayDisputes] = await Promise.all([
-      this.rechargeModel.countDocuments({ status: TransactionStatus.PENDING }),
-      this.rechargeModel.countDocuments({ status: TransactionStatus.PENDING, createdAt: { $lt: thirtyMinAgo } }),
-      this.rechargeModel.countDocuments({ status: TransactionStatus.SUCCESS, createdAt: { $gte: today } }),
-      this.rechargeModel.countDocuments({ status: TransactionStatus.FAILED, createdAt: { $gte: today } }),
-      this.rechargeModel.countDocuments({ status: TransactionStatus.DISPUTE }),
-    ]);
-
-    const todayVolume = await this.rechargeModel.aggregate([
-      { $match: { createdAt: { $gte: today }, status: TransactionStatus.SUCCESS } },
-      { $group: { _id: null, total: { $sum: '$amount' }, commission: { $sum: '$commission' } } },
+    const [totalPending, stalePending, todaySuccess, todayFailed, todayDisputes, todayVolume] = await Promise.all([
+      this.prisma.rechargeTransaction.count({ where: { status: TransactionStatus.PENDING as any } }),
+      this.prisma.rechargeTransaction.count({
+        where: {
+          status: TransactionStatus.PENDING as any,
+          createdAt: { lt: thirtyMinAgo },
+        },
+      }),
+      this.prisma.rechargeTransaction.count({
+        where: {
+          status: TransactionStatus.SUCCESS as any,
+          createdAt: { gte: today },
+        },
+      }),
+      this.prisma.rechargeTransaction.count({
+        where: {
+          status: TransactionStatus.FAILED as any,
+          createdAt: { gte: today },
+        },
+      }),
+      this.prisma.rechargeTransaction.count({ where: { status: TransactionStatus.DISPUTE as any } }),
+      this.prisma.rechargeTransaction.aggregate({
+        where: {
+          createdAt: { gte: today },
+          status: TransactionStatus.SUCCESS as any,
+        },
+        _sum: { amount: true, commission: true },
+      }),
     ]);
 
     return {
@@ -59,8 +75,8 @@ export class ReconciliationService implements OnModuleInit {
       todaySuccess,
       todayFailed,
       todayDisputes,
-      todayVolume: todayVolume[0]?.total || 0,
-      todayCommission: todayVolume[0]?.commission || 0,
+      todayVolume: todayVolume._sum.amount || 0,
+      todayCommission: todayVolume._sum.commission || 0,
       lastRun: new Date().toISOString(),
     };
   }
@@ -88,11 +104,13 @@ export class ReconciliationService implements OnModuleInit {
             if (!txnId && !providerRef) continue;
 
             let txn: any = null;
+
             if (txnId) {
-              txn = await this.rechargeModel.findOne({ id: txnId }).lean();
+              txn = await this.prisma.rechargeTransaction.findUnique({ where: { id: txnId } });
             }
+
             if (!txn && providerRef) {
-              txn = await this.rechargeModel.findOne({ providerRef }).lean();
+              txn = await this.prisma.rechargeTransaction.findFirst({ where: { providerRef } });
             }
 
             if (!txn) {
@@ -100,8 +118,8 @@ export class ReconciliationService implements OnModuleInit {
               continue;
             }
 
-            const ourStatus = (txn as any).status;
-            const ourAmount = (txn as any).amount;
+            const ourStatus = txn.status;
+            const ourAmount = txn.amount;
 
             let statusMatch = false;
             if (providerStatus.includes('success') && ourStatus === 'success') statusMatch = true;
@@ -112,19 +130,19 @@ export class ReconciliationService implements OnModuleInit {
 
             if (statusMatch && amountMatch) {
               matched.push({
-                txnId: (txn as any).id,
+                txnId: txn.id,
                 ourStatus,
                 providerStatus,
                 amount: ourAmount,
               });
             } else {
               mismatched.push({
-                txnId: (txn as any).id,
+                txnId: txn.id,
                 ourStatus,
                 providerStatus,
                 ourAmount,
                 providerAmount,
-                providerRef: (txn as any).providerRef,
+                providerRef: txn.providerRef,
               });
             }
           }

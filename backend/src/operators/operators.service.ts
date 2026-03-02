@@ -1,16 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Operator } from './operator.schema';
 import { CreateOperatorDto, UpdateOperatorDto } from './operator.dto';
-import { v4 as uuidv4 } from 'uuid';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class OperatorsService {
-  constructor(@InjectModel(Operator.name) private operatorModel: Model<Operator>) {}
+  constructor(private prisma: PrismaService) {}
 
   generateOpCode(name: string, service: string): string {
-    const platformLetter = 'P'; // PaisaPe
+    const platformLetter = 'P';
     const serviceMap: Record<string, string> = {
       mobile: 'M',
       dth: 'D',
@@ -23,25 +20,20 @@ export class OperatorsService {
 
   async create(createDto: CreateOperatorDto): Promise<any> {
     const opCode = createDto.opCode || this.generateOpCode(createDto.name, createDto.service);
-
-    const operator = new this.operatorModel({
-      ...createDto,
-      opCode,
-      id: uuidv4(),
+    return this.prisma.operator.create({
+      data: {
+        ...createDto,
+        opCode,
+      },
     });
-    await operator.save();
-    const obj = operator.toObject();
-    delete obj._id;
-    delete obj.__v;
-    return obj;
   }
 
   async findAll(): Promise<any[]> {
-    return this.operatorModel.find().select('-_id -__v');
+    return this.prisma.operator.findMany({ orderBy: { createdAt: 'desc' } });
   }
 
-  async findById(id: string): Promise<Operator> {
-    const operator = await this.operatorModel.findOne({ id });
+  async findById(id: string): Promise<any> {
+    const operator = await this.prisma.operator.findUnique({ where: { id } });
     if (!operator) {
       throw new NotFoundException('Operator not found');
     }
@@ -49,20 +41,21 @@ export class OperatorsService {
   }
 
   async update(id: string, updateDto: UpdateOperatorDto): Promise<any> {
-    const operator = await this.operatorModel.findOneAndUpdate(
-      { id },
-      updateDto,
-      { new: true }
-    ).select('-_id -__v');
-    if (!operator) {
+    const operator = await this.prisma.operator.updateMany({
+      where: { id },
+      data: updateDto,
+    });
+
+    if (operator.count === 0) {
       throw new NotFoundException('Operator not found');
     }
-    return operator;
+
+    return this.findById(id);
   }
 
   async delete(id: string): Promise<void> {
-    const result = await this.operatorModel.deleteOne({ id });
-    if (result.deletedCount === 0) {
+    const result = await this.prisma.operator.deleteMany({ where: { id } });
+    if (result.count === 0) {
       throw new NotFoundException('Operator not found');
     }
   }

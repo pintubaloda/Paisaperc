@@ -1,9 +1,8 @@
-const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const { PrismaClient } = require('@prisma/client');
 require('dotenv').config();
 
-const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017';
-const DB_NAME = process.env.DB_NAME || 'paisape_db';
+const prisma = new PrismaClient();
 
 const demoUsers = [
   {
@@ -15,6 +14,7 @@ const demoUsers = [
     role: 'admin',
     kycStatus: true,
     isActive: true,
+    initialBalance: 0,
   },
   {
     id: 'retailer-001',
@@ -25,6 +25,7 @@ const demoUsers = [
     role: 'retailer',
     kycStatus: false,
     isActive: true,
+    initialBalance: 1000,
   },
   {
     id: 'distributor-001',
@@ -35,6 +36,7 @@ const demoUsers = [
     role: 'distributor',
     kycStatus: true,
     isActive: true,
+    initialBalance: 1000,
   },
   {
     id: 'api-user-001',
@@ -47,68 +49,67 @@ const demoUsers = [
     isActive: true,
     apiKey: 'demo-api-key-12345',
     apiSecret: 'demo-api-secret-67890',
+    initialBalance: 1000,
   },
 ];
 
 async function seedUsers() {
   try {
-    console.log('Connecting to MongoDB...');
-    await mongoose.connect(MONGO_URL, { dbName: DB_NAME });
-    console.log('✅ Connected to MongoDB');
-
-    const db = mongoose.connection.db;
-    const usersCollection = db.collection('users');
-    const walletsCollection = db.collection('wallets');
-
-    // Clear existing demo users
-    await usersCollection.deleteMany({ email: { $in: demoUsers.map(u => u.email) } });
-    await walletsCollection.deleteMany({ userId: { $in: demoUsers.map(u => u.id) } });
-
-    console.log('\nCreating demo users...');
+    console.log('Seeding demo users in PostgreSQL...');
 
     for (const user of demoUsers) {
-      // Hash password
       const hashedPassword = await bcrypt.hash(user.password, 10);
-      
-      // Create user
-      await usersCollection.insertOne({
-        ...user,
-        password: hashedPassword,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+
+      await prisma.user.upsert({
+        where: { email: user.email },
+        update: {
+          name: user.name,
+          mobile: user.mobile,
+          role: user.role,
+          kycStatus: user.kycStatus,
+          isActive: user.isActive,
+          apiKey: user.apiKey || null,
+          apiSecret: user.apiSecret || null,
+          password: hashedPassword,
+        },
+        create: {
+          id: user.id,
+          email: user.email,
+          password: hashedPassword,
+          name: user.name,
+          mobile: user.mobile,
+          role: user.role,
+          kycStatus: user.kycStatus,
+          isActive: user.isActive,
+          apiKey: user.apiKey || null,
+          apiSecret: user.apiSecret || null,
+        },
       });
 
-      // Create wallet with demo balance
-      const initialBalance = user.role === 'admin' ? 0 : 1000;
-      await walletsCollection.insertOne({
-        userId: user.id,
-        balance: initialBalance,
-        lockedBalance: 0,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+      await prisma.wallet.upsert({
+        where: { userId: user.id },
+        update: { balance: user.initialBalance, lockedBalance: 0 },
+        create: { userId: user.id, balance: user.initialBalance, lockedBalance: 0 },
       });
 
-      console.log(`✅ Created: ${user.email} (${user.role}) - Balance: ₹${initialBalance}`);
+      console.log(`Created/updated: ${user.email} (${user.role})`);
     }
 
-    console.log('\n🎉 Demo users created successfully!');
+    console.log('\nDemo users seeded successfully.');
     console.log('\n=== LOGIN CREDENTIALS ===\n');
-    demoUsers.forEach(user => {
+
+    demoUsers.forEach((user) => {
       console.log(`${user.role.toUpperCase()}`);
       console.log(`Email: ${user.email}`);
       console.log(`Password: ${user.password}`);
-      if (user.apiKey) {
-        console.log(`API Key: ${user.apiKey}`);
-      }
+      if (user.apiKey) console.log(`API Key: ${user.apiKey}`);
       console.log('---');
     });
-
-    await mongoose.connection.close();
-    console.log('\n✅ Database connection closed');
-    process.exit(0);
   } catch (error) {
-    console.error('❌ Error seeding users:', error);
-    process.exit(1);
+    console.error('Error seeding users:', error);
+    process.exitCode = 1;
+  } finally {
+    await prisma.$disconnect();
   }
 }
 

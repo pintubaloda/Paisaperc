@@ -29,11 +29,7 @@ export class ApiConfigController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   async findOne(@Param('id') id: string) {
-    const api = await this.apiConfigService.findById(id);
-    const obj = api.toObject();
-    delete obj._id;
-    delete obj.__v;
-    return obj;
+    return this.apiConfigService.findById(id);
   }
 
   @Get(':id/callback-url')
@@ -50,9 +46,8 @@ export class ApiConfigController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   async testApi(@Param('id') id: string, @Body() body: { mobile?: string; operatorCode?: string; amount?: number }) {
-    const apiConfig = await this.apiConfigService.findById(id);
-    const obj = apiConfig.toObject();
-    
+    const obj = await this.apiConfigService.findById(id);
+
     const url = `${obj.protocol}://${obj.domain}${obj.endpoint}`;
     const params = (obj.parameters || []).map((p: any) => {
       let val = p.fieldValue;
@@ -72,7 +67,7 @@ export class ApiConfigController {
     }
 
     const headers = (obj.headers || []).map((h: any) => ({ key: h.key, value: h.value }));
-    
+
     const jsonBody: any = {};
     if (obj.method !== 'GET' && obj.requestFormat !== 'query_param') {
       params.forEach((p: any) => { jsonBody[p.key] = p.value; });

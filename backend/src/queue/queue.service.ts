@@ -1,18 +1,14 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { QueueJob } from './queue.schema';
-import { v4 as uuidv4 } from 'uuid';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class QueueService implements OnModuleInit {
   private processing = false;
   private handlers = new Map<string, (payload: any) => Promise<any>>();
 
-  constructor(@InjectModel(QueueJob.name) private queueModel: Model<QueueJob>) {}
+  constructor(private prisma: PrismaService) {}
 
   onModuleInit() {
-    // Process queue every 5 seconds
     setInterval(() => this.processNext(), 5000);
   }
 
@@ -21,45 +17,76 @@ export class QueueService implements OnModuleInit {
   }
 
   async addJob(type: string, payload: any, maxAttempts = 3): Promise<any> {
-    const job = new this.queueModel({ id: uuidv4(), type, payload, maxAttempts });
-    await job.save();
-    const obj = job.toObject(); delete obj._id; delete obj.__v;
-    return obj;
+    return this.prisma.queueJob.create({ data: { type, payload, maxAttempts } });
   }
 
   async processNext(): Promise<void> {
     if (this.processing) return;
     this.processing = true;
+
     try {
-      const job = await this.queueModel.findOneAndUpdate(
-        { status: 'pending', attempts: { $lt: 3 } },
-        { status: 'processing', $inc: { attempts: 1 } },
-        { new: true, sort: { createdAt: 1 } },
-      );
+      const job = await this.prisma.queueJob.findFirst({
+        where: { status: 'pending' },
+        orderBy: { createdAt: 'asc' },
+      });
+
       if (!job) return;
 
-      const handler = this.handlers.get(job.type);
+      if (job.attempts >= job.maxAttempts) {
+        await this.prisma.queueJob.update({
+          where: { id: job.id },
+          data: { status: 'failed', error: 'Max attempts exceeded' },
+        });
+        return;
+      }
+
+      const locked = await this.prisma.queueJob.updateMany({
+        where: { id: job.id, status: 'pending' },
+        data: { status: 'processing', attempts: { increment: 1 } },
+      });
+
+      if (locked.count === 0) return;
+
+      const processingJob = await this.prisma.queueJob.findUnique({ where: { id: job.id } });
+      if (!processingJob) return;
+
+      const handler = this.handlers.get(processingJob.type);
       if (!handler) {
-        job.status = 'failed';
-        job.error = `No handler for type: ${job.type}`;
-        await job.save();
+        await this.prisma.queueJob.update({
+          where: { id: processingJob.id },
+          data: {
+            status: 'failed',
+            error: `No handler for type: ${processingJob.type}`,
+          },
+        });
         return;
       }
 
       try {
-        const result = await handler(job.payload);
-        job.status = 'completed';
-        job.result = JSON.stringify(result);
-        job.processedAt = new Date();
-      } catch (err) {
-        if (job.attempts >= job.maxAttempts) {
-          job.status = 'failed';
-          job.error = err.message;
+        const result = await handler(processingJob.payload);
+        await this.prisma.queueJob.update({
+          where: { id: processingJob.id },
+          data: {
+            status: 'completed',
+            result: JSON.stringify(result),
+            processedAt: new Date(),
+          },
+        });
+      } catch (err: any) {
+        const refreshed = await this.prisma.queueJob.findUnique({ where: { id: processingJob.id } });
+
+        if ((refreshed?.attempts || 0) >= (refreshed?.maxAttempts || 0)) {
+          await this.prisma.queueJob.update({
+            where: { id: processingJob.id },
+            data: { status: 'failed', error: err?.message || 'Unknown queue error' },
+          });
         } else {
-          job.status = 'pending'; // retry
+          await this.prisma.queueJob.update({
+            where: { id: processingJob.id },
+            data: { status: 'pending' },
+          });
         }
       }
-      await job.save();
     } finally {
       this.processing = false;
     }
@@ -67,16 +94,20 @@ export class QueueService implements OnModuleInit {
 
   async getStats(): Promise<any> {
     const [pending, processing, completed, failed] = await Promise.all([
-      this.queueModel.countDocuments({ status: 'pending' }),
-      this.queueModel.countDocuments({ status: 'processing' }),
-      this.queueModel.countDocuments({ status: 'completed' }),
-      this.queueModel.countDocuments({ status: 'failed' }),
+      this.prisma.queueJob.count({ where: { status: 'pending' } }),
+      this.prisma.queueJob.count({ where: { status: 'processing' } }),
+      this.prisma.queueJob.count({ where: { status: 'completed' } }),
+      this.prisma.queueJob.count({ where: { status: 'failed' } }),
     ]);
+
     return { pending, processing, completed, failed, total: pending + processing + completed + failed };
   }
 
   async getJobs(status?: string, limit = 50): Promise<any[]> {
-    const query = status ? { status } : {};
-    return this.queueModel.find(query).sort({ createdAt: -1 }).limit(limit).select('-_id -__v');
+    return this.prisma.queueJob.findMany({
+      where: status ? { status } : {},
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
   }
 }

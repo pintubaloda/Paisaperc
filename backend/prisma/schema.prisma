@@ -1,0 +1,310 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  admin
+  retailer
+  distributor
+  super_distributor
+  api_user
+}
+
+enum PaymentRequestStatus {
+  pending
+  approved
+  rejected
+}
+
+enum TransactionStatus {
+  init
+  pending
+  success
+  failed
+  refunded
+  dispute
+}
+
+model User {
+  id                    String    @id @default(uuid())
+  email                 String    @unique
+  password              String
+  name                  String
+  mobile                String
+  role                  UserRole
+  kycStatus             Boolean   @default(false)
+  isActive              Boolean   @default(true)
+  panCard               String?
+  aadhaarCard           String?
+  gstNumber             String?
+  kycVerifiedBy         String?
+  kycVerifiedAt         DateTime?
+  kycRejectionReason    String?
+  kycVerificationStatus String    @default("pending")
+  panDocUrl             String?
+  aadhaarDocUrl         String?
+  gstDocUrl             String?
+  apiKey                String?   @unique
+  allowedIps            String[]  @default([])
+  apiSecret             String?
+  wallet                Wallet?
+  ledgers               LedgerEntry[]
+  paymentRequests       PaymentRequest[]
+  kycDocuments          KycDocument[]
+  disputes              Dispute[]
+  rechargeTransactions  RechargeTransaction[]
+  twoFactorAuth         TwoFactorAuth?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Wallet {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  balance       Float    @default(0)
+  lockedBalance Float    @default(0)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model LedgerEntry {
+  id           String   @id @default(uuid())
+  userId       String
+  txnId        String
+  debit        Float    @default(0)
+  credit       Float    @default(0)
+  balanceAfter Float
+  type         String
+  remark       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([txnId])
+}
+
+model Operator {
+  id        String   @id @default(uuid())
+  name      String
+  service   String
+  opCode    String
+  stateCode String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([service, isActive])
+}
+
+model ApiMaster {
+  id                String   @id @default(uuid())
+  name              String
+  apiType           String
+  protocol          String   @default("https")
+  domain            String
+  endpoint          String
+  method            String
+  parameters        Json?
+  headers           Json?
+  authToken         String?
+  requestFormat     String?  @default("query_param")
+  operatorCodes     Json?
+  responseMappings  Json?
+  successField      String?
+  successValue      String?
+  failedValue       String?
+  pendingValue      String?
+  txnIdField        String?
+  balanceField      String?
+  messageField      String?
+  statusCheckEndpoint String?
+  statusCheckMethod String?
+  statusCheckParams Json?
+  isSandbox         Boolean  @default(false)
+  isActive          Boolean  @default(true)
+  successRate       Float    @default(100)
+  balance           Float    @default(0)
+  callbackToken     String?
+  sampleRequest     String?
+  sampleResponse    String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([apiType, isActive])
+}
+
+model Commission {
+  id              String   @id @default(uuid())
+  role            String
+  operatorId      String
+  service         String?
+  commissionType  String
+  commissionValue Float
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([role, operatorId, isActive])
+}
+
+model RoutingRule {
+  id          String   @id @default(uuid())
+  role        String?
+  operatorId  String?
+  apiPriority String[] @default([])
+  minAmount   Float    @default(0)
+  maxAmount   Float    @default(999999)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, operatorId, role])
+}
+
+model RechargeTransaction {
+  id              String            @id @default(uuid())
+  userId          String
+  operatorId      String
+  operatorName    String?
+  apiId           String?
+  mobile          String
+  amount          Float
+  commission      Float             @default(0)
+  refundAmount    Float             @default(0)
+  status          TransactionStatus @default(init)
+  providerRef     String?
+  responseCode    String?
+  responseMessage String?
+  circle          String?
+  apiRequest      String?
+  apiResponse     String?
+  isSandbox       Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([providerRef])
+}
+
+model TxnEvent {
+  id          String   @id @default(uuid())
+  txnId       String
+  event       String
+  description String
+  status      String?
+  meta        Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([txnId, createdAt])
+}
+
+model Dispute {
+  id             String   @id @default(uuid())
+  txnId          String
+  userId         String
+  operatorName   String?
+  mobile         String?
+  amount         Float
+  originalStatus String
+  webhookStatus  String
+  webhookData    Json?
+  resolved       Boolean  @default(false)
+  adminAction    String?
+  adminNote      String?
+  resolvedBy     String?
+  resolvedAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([resolved, createdAt])
+  @@index([txnId])
+}
+
+model KycDocument {
+  id              String   @id @default(uuid())
+  userId          String
+  docType         String
+  docNumber       String
+  docUrl          String?
+  status          String   @default("pending")
+  verifiedBy      String?
+  verifiedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, docType])
+  @@index([status, createdAt])
+}
+
+model OperatorApiMapping {
+  id        String   @id @default(uuid())
+  operatorId String
+  apiId      String
+  priority   Int      @default(1)
+  isActive   Boolean  @default(true)
+  minAmount  Float    @default(0)
+  maxAmount  Float    @default(999999)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([operatorId, isActive, priority])
+}
+
+model PaymentRequest {
+  id              String               @id @default(uuid())
+  userId          String
+  amount          Float
+  paymentMode     String
+  referenceNumber String
+  proofUrl        String?
+  status          PaymentRequestStatus @default(pending)
+  adminRemarks    String?
+  remarks         String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+model QueueJob {
+  id          String   @id @default(uuid())
+  type        String
+  payload     Json
+  status      String   @default("pending")
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(3)
+  result      String?
+  error       String?
+  processedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model TwoFactorAuth {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  isEnabled   Boolean  @default(false)
+  secret      String?
+  isVerified  Boolean  @default(false)
+  backupCodes String[] @default([])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

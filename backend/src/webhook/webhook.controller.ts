@@ -17,14 +17,11 @@ export class WebhookController {
     @Headers('x-callback-token') headerToken: string,
     @Body() body: any,
   ) {
-    // Validate callback token
-    const apiConfig = await this.apiConfigService.findById(apiId);
-    const cfg = apiConfig.toObject();
+    const cfg = await this.apiConfigService.findById(apiId);
     if (cfg.callbackToken && cfg.callbackToken !== headerToken && cfg.callbackToken !== body.token) {
       throw new BadRequestException('Invalid callback token');
     }
 
-    // Replay protection — reject if timestamp older than 5 minutes
     if (body.timestamp) {
       const webhookTime = new Date(body.timestamp).getTime();
       const now = Date.now();
@@ -33,7 +30,6 @@ export class WebhookController {
       }
     }
 
-    // Extract status from body using configured fields
     const statusField = cfg.successField || 'status';
     const rawStatus = body[statusField];
     let status = 'pending';

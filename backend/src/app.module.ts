@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
@@ -22,11 +21,12 @@ import { ReconciliationModule } from './reconciliation/reconciliation.module';
 import { ReportsModule } from './reports/reports.module';
 import { OperatorAPIMappingModule } from './operator-api-mapping/operator-api-mapping.module';
 import { PaymentRequestsModule } from './payment-requests/payment-requests.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    MongooseModule.forRoot(process.env.MONGO_URL, { dbName: process.env.DB_NAME }),
+    PrismaModule,
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     AuthModule,
     UsersModule,

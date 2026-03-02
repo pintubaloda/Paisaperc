@@ -14,10 +14,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   async getProfile(@Request() req) {
     const user = await this.usersService.findById(req.user.id);
-    const userObj = user.toObject();
-    delete userObj.password;
-    delete userObj._id;
-    delete userObj.__v;
+    const { password, ...userObj } = user;
     return userObj;
   }
 

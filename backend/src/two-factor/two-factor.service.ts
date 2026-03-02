@@ -1,17 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { TwoFactorAuth } from './two-factor.schema';
-import { v4 as uuidv4 } from 'uuid';
 import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
 import * as crypto from 'crypto';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class TwoFactorService {
-  constructor(
-    @InjectModel(TwoFactorAuth.name) private twoFactorModel: Model<TwoFactorAuth>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async enable2FA(userId: string): Promise<any> {
     const secret = speakeasy.generateSecret({
@@ -22,25 +17,22 @@ export class TwoFactorService {
 
     const backupCodes = this.generateBackupCodes();
 
-    let twoFactor = await this.twoFactorModel.findOne({ userId });
-
-    if (twoFactor) {
-      twoFactor.isEnabled = true;
-      twoFactor.secret = secret.base32;
-      twoFactor.backupCodes = backupCodes;
-      twoFactor.isVerified = false;
-      await twoFactor.save();
-    } else {
-      twoFactor = new this.twoFactorModel({
-        id: uuidv4(),
+    await this.prisma.twoFactorAuth.upsert({
+      where: { userId },
+      update: {
+        isEnabled: true,
+        secret: secret.base32,
+        backupCodes,
+        isVerified: false,
+      },
+      create: {
         userId,
         isEnabled: true,
         secret: secret.base32,
         backupCodes,
         isVerified: false,
-      });
-      await twoFactor.save();
-    }
+      },
+    });
 
     const otpauthUrl = speakeasy.otpauthURL({
       secret: secret.ascii,
@@ -59,15 +51,18 @@ export class TwoFactorService {
   }
 
   async disable2FA(userId: string): Promise<void> {
-    await this.twoFactorModel.updateOne({ userId }, { isEnabled: false, isVerified: false });
+    await this.prisma.twoFactorAuth.updateMany({
+      where: { userId },
+      data: { isEnabled: false, isVerified: false },
+    });
   }
 
   async verify2FA(userId: string, code: string): Promise<boolean> {
-    const twoFactor = await this.twoFactorModel.findOne({ userId, isEnabled: true });
-    if (!twoFactor) return false;
+    const twoFactor = await this.prisma.twoFactorAuth.findUnique({ where: { userId } });
+    if (!twoFactor || !twoFactor.isEnabled) return false;
 
     const isValid = speakeasy.totp.verify({
-      secret: twoFactor.secret,
+      secret: twoFactor.secret || '',
       encoding: 'base32',
       token: code,
       window: 2,
@@ -75,16 +70,21 @@ export class TwoFactorService {
 
     if (isValid) {
       if (!twoFactor.isVerified) {
-        twoFactor.isVerified = true;
-        await twoFactor.save();
+        await this.prisma.twoFactorAuth.update({
+          where: { userId },
+          data: { isVerified: true },
+        });
       }
       return true;
     }
 
-    // Check backup codes
-    if (twoFactor.backupCodes.includes(code)) {
-      twoFactor.backupCodes = twoFactor.backupCodes.filter(c => c !== code);
-      await twoFactor.save();
+    if ((twoFactor.backupCodes || []).includes(code)) {
+      await this.prisma.twoFactorAuth.update({
+        where: { userId },
+        data: {
+          backupCodes: (twoFactor.backupCodes || []).filter((c) => c !== code),
+        },
+      });
       return true;
     }
 
@@ -92,8 +92,9 @@ export class TwoFactorService {
   }
 
   async getStatus(userId: string): Promise<any> {
-    const twoFactor = await this.twoFactorModel.findOne({ userId }).select('-_id -__v -secret');
+    const twoFactor = await this.prisma.twoFactorAuth.findUnique({ where: { userId } });
     if (!twoFactor) return { isEnabled: false, isVerified: false, backupCodesRemaining: 0 };
+
     return {
       isEnabled: twoFactor.isEnabled,
       isVerified: twoFactor.isVerified || false,
@@ -103,7 +104,7 @@ export class TwoFactorService {
 
   private generateBackupCodes(): string[] {
     return Array.from({ length: 10 }, () =>
-      crypto.randomBytes(4).toString('hex').toUpperCase()
+      crypto.randomBytes(4).toString('hex').toUpperCase(),
     );
   }
 }

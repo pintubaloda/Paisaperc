@@ -1,63 +1,93 @@
-import { Injectable, BadRequestException, NotFoundException, Inject, forwardRef } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Wallet, LedgerEntry } from './wallet.schema';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class WalletService {
-  constructor(
-    @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
-    @InjectModel(LedgerEntry.name) private ledgerModel: Model<LedgerEntry>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
-  async createWallet(userId: string): Promise<Wallet> {
-    const wallet = new this.walletModel({ userId, balance: 0, lockedBalance: 0 });
-    return wallet.save();
+  async createWallet(userId: string): Promise<any> {
+    return this.prisma.wallet.upsert({
+      where: { userId },
+      update: {},
+      create: { userId, balance: 0, lockedBalance: 0 },
+    });
   }
 
   async getWallet(userId: string): Promise<any> {
-    const wallet = await this.walletModel.findOne({ userId }).select('-_id -__v');
+    const wallet = await this.prisma.wallet.findUnique({ where: { userId } });
     if (!wallet) throw new NotFoundException('Wallet not found');
     return wallet;
   }
 
   async addBalance(userId: string, amount: number, remark: string, txnId?: string): Promise<void> {
-    const wallet = await this.walletModel.findOne({ userId });
-    if (!wallet) throw new NotFoundException('Wallet not found');
-    wallet.balance += amount;
-    const newBalance = wallet.balance;
-    await wallet.save();
-    const ledgerEntry = new this.ledgerModel({
-      id: uuidv4(), userId, txnId: txnId || uuidv4(),
-      credit: amount, debit: 0, balanceAfter: newBalance, type: 'CREDIT', remark,
+    await this.prisma.$transaction(async (tx) => {
+      const wallet = await tx.wallet.findUnique({ where: { userId } });
+      if (!wallet) throw new NotFoundException('Wallet not found');
+
+      const updated = await tx.wallet.update({
+        where: { userId },
+        data: { balance: wallet.balance + amount },
+      });
+
+      await tx.ledgerEntry.create({
+        data: {
+          id: uuidv4(),
+          userId,
+          txnId: txnId || uuidv4(),
+          credit: amount,
+          debit: 0,
+          balanceAfter: updated.balance,
+          type: 'CREDIT',
+          remark,
+        },
+      });
     });
-    await ledgerEntry.save();
   }
 
   async deductBalance(userId: string, amount: number, remark: string, txnId: string): Promise<void> {
-    const wallet = await this.walletModel.findOne({ userId });
-    if (!wallet) throw new NotFoundException('Wallet not found');
-    if (wallet.balance < amount) throw new BadRequestException('Insufficient balance');
-    wallet.balance -= amount;
-    const newBalance = wallet.balance;
-    await wallet.save();
-    const ledgerEntry = new this.ledgerModel({
-      id: uuidv4(), userId, txnId, debit: amount, credit: 0, balanceAfter: newBalance, type: 'DEBIT', remark,
+    await this.prisma.$transaction(async (tx) => {
+      const wallet = await tx.wallet.findUnique({ where: { userId } });
+      if (!wallet) throw new NotFoundException('Wallet not found');
+      if (wallet.balance < amount) throw new BadRequestException('Insufficient balance');
+
+      const updated = await tx.wallet.update({
+        where: { userId },
+        data: { balance: wallet.balance - amount },
+      });
+
+      await tx.ledgerEntry.create({
+        data: {
+          id: uuidv4(),
+          userId,
+          txnId,
+          debit: amount,
+          credit: 0,
+          balanceAfter: updated.balance,
+          type: 'DEBIT',
+          remark,
+        },
+      });
     });
-    await ledgerEntry.save();
   }
 
   async getLedger(userId: string, limit = 100): Promise<any[]> {
-    return this.ledgerModel.find({ userId }).sort({ createdAt: -1 }).limit(limit).select('-_id -__v');
+    return this.prisma.ledgerEntry.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
   }
 
   async getAllLedgerEntries(limit = 1000): Promise<any[]> {
-    return this.ledgerModel.find().sort({ createdAt: -1 }).limit(limit).select('-_id -__v');
+    return this.prisma.ledgerEntry.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
   }
 
   async getAllWallets(): Promise<any[]> {
-    return this.walletModel.find().select('-_id -__v');
+    return this.prisma.wallet.findMany({ orderBy: { createdAt: 'desc' } });
   }
 
   /**
@@ -66,19 +96,29 @@ export class WalletService {
    * Shows: S.No, User, DateTime, TxnId, Mobile, OpeningBal, NetAmount (after commission), ClosingBal
    */
   async getLedgerReport(filters: { userId?: string; startDate?: string; endDate?: string; limit?: number }): Promise<any[]> {
-    const query: any = {};
-    if (filters.userId) query.userId = filters.userId;
+    const where: any = {};
+
+    if (filters.userId) {
+      where.userId = filters.userId;
+    }
+
     if (filters.startDate || filters.endDate) {
-      query.createdAt = {};
-      if (filters.startDate) query.createdAt.$gte = new Date(filters.startDate);
+      where.createdAt = {};
+      if (filters.startDate) {
+        where.createdAt.gte = new Date(filters.startDate);
+      }
       if (filters.endDate) {
         const end = new Date(filters.endDate);
         end.setHours(23, 59, 59, 999);
-        query.createdAt.$lte = end;
+        where.createdAt.lte = end;
       }
     }
 
-    const entries = await this.ledgerModel.find(query).sort({ createdAt: 1 }).limit(filters.limit || 5000).lean() as any[];
+    const entries = await this.prisma.ledgerEntry.findMany({
+      where,
+      orderBy: { createdAt: 'asc' },
+      take: filters.limit || 5000,
+    });
 
     // Group by txnId to consolidate double entries
     const txnMap = new Map<string, any>();

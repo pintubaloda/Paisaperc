@@ -1,51 +1,51 @@
 import { Injectable, ConflictException, NotFoundException, Inject, forwardRef } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User } from './user.schema';
 import { RegisterDto, UpdateKycDto } from './user.dto';
 import { WalletService } from '../wallet/wallet.service';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
+import { PrismaService } from '../prisma/prisma.service';
+import { UserRole } from '../common/enums';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectModel(User.name) private userModel: Model<User>,
+    private prisma: PrismaService,
     @Inject(forwardRef(() => WalletService)) private walletService: WalletService,
   ) {}
 
+  private sanitizeUser<T extends { password?: string; apiSecret?: string }>(user: T) {
+    const { password, apiSecret, ...safeUser } = user;
+    return safeUser;
+  }
+
   async create(registerDto: RegisterDto): Promise<any> {
-    const existing = await this.userModel.findOne({ email: registerDto.email });
+    const existing = await this.prisma.user.findUnique({ where: { email: registerDto.email } });
     if (existing) {
       throw new ConflictException('User already exists');
     }
 
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-    
-    const user = new this.userModel({
-      ...registerDto,
+
+    const user = await this.prisma.user.create({
+      data: {
+        ...registerDto,
       password: hashedPassword,
       id: uuidv4(),
-      apiKey: registerDto.role === 'api_user' ? uuidv4() : undefined,
-      apiSecret: registerDto.role === 'api_user' ? uuidv4() : undefined,
+        apiKey: registerDto.role === UserRole.API_USER ? uuidv4() : null,
+        apiSecret: registerDto.role === UserRole.API_USER ? uuidv4() : null,
+      },
     });
 
-    await user.save();
-    
-    const userObj = user.toObject();
-    delete userObj.password;
-    delete userObj._id;
-    delete userObj.__v;
-    
-    return userObj;
+    return this.sanitizeUser(user);
   }
 
-  async findByEmail(email: string): Promise<User> {
-    return this.userModel.findOne({ email });
+  async findByEmail(email: string): Promise<any> {
+    return this.prisma.user.findUnique({ where: { email } });
   }
 
-  async findById(id: string): Promise<User> {
-    const user = await this.userModel.findOne({ id });
+  async findById(id: string): Promise<any> {
+    const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -53,35 +53,59 @@ export class UsersService {
   }
 
   async findAll(): Promise<any[]> {
-    const users = await this.userModel.find().select('-password -apiSecret -_id -__v');
+    const users = await this.prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        mobile: true,
+        role: true,
+        kycStatus: true,
+        isActive: true,
+        panCard: true,
+        aadhaarCard: true,
+        gstNumber: true,
+        kycVerifiedBy: true,
+        kycVerifiedAt: true,
+        kycRejectionReason: true,
+        kycVerificationStatus: true,
+        panDocUrl: true,
+        aadhaarDocUrl: true,
+        gstDocUrl: true,
+        apiKey: true,
+        allowedIps: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
     return users;
   }
 
   async updateKyc(userId: string, kycDto: UpdateKycDto): Promise<any> {
-    const user = await this.userModel.findOneAndUpdate(
-      { id: userId },
-      { ...kycDto, kycStatus: true },
-      { new: true }
-    ).select('-password -_id -__v');
-    
-    if (!user) {
-      throw new NotFoundException('User not found');
+    try {
+      const user = await this.prisma.user.update({
+        where: { id: userId },
+        data: { ...kycDto, kycStatus: true },
+      });
+      return this.sanitizeUser(user);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new NotFoundException('User not found');
+      }
+      throw error;
     }
-    
-    return user;
   }
 
   async toggleUserStatus(userId: string): Promise<any> {
     const user = await this.findById(userId);
-    user.isActive = !user.isActive;
-    await user.save();
-    
-    const userObj = user.toObject();
-    delete userObj.password;
-    delete userObj._id;
-    delete userObj.__v;
-    
-    return userObj;
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: { isActive: !user.isActive },
+    });
+
+    return this.sanitizeUser(updated);
   }
 
   async updateUser(userId: string, updateData: any): Promise<any> {
@@ -92,15 +116,18 @@ export class UsersService {
         sanitized[key] = updateData[key];
       }
     }
-    const user = await this.userModel.findOneAndUpdate(
-      { id: userId },
-      sanitized,
-      { new: true },
-    ).select('-password -_id -__v');
-    if (!user) {
-      throw new NotFoundException('User not found');
+    try {
+      const user = await this.prisma.user.update({
+        where: { id: userId },
+        data: sanitized,
+      });
+      return this.sanitizeUser(user);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new NotFoundException('User not found');
+      }
+      throw error;
     }
-    return user;
   }
 
   async adjustWallet(userId: string, amount: number, type: string, remarks: string): Promise<any> {
