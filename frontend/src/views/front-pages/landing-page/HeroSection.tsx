@@ -89,15 +89,20 @@ const HeroSection = ({ mode }: { mode: SystemMode }) => {
               <Typography className='font-medium'>Join community</Typography>
               <img src='/images/front-pages/landing-page/join-community-arrow.png' alt='arrow' height='48' width='60' />
             </div>
-            <Button
-              component={Link}
-              size='large'
-              href='/front-pages/landing-page#pricing-plans'
-              variant='contained'
-              color='primary'
-            >
-              Get Early Access
-            </Button>
+            <div className='flex gap-3 flex-wrap justify-center'>
+              <Button
+                component={Link}
+                size='large'
+                href='/front-pages/landing-page#pricing-plans'
+                variant='contained'
+                color='primary'
+              >
+                Get Early Access
+              </Button>
+              <Button component={Link} size='large' href='/front-pages/legacy-landing' variant='tonal'>
+                Legacy Landing
+              </Button>
+            </div>
           </div>
         </div>
       </div>

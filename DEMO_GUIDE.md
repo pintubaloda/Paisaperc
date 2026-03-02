@@ -4,7 +4,7 @@
 
 **Payments. Everytime. Everywhere**
 
-A comprehensive enterprise-grade recharge and bill payment platform built with NestJS, React, and MongoDB.
+A comprehensive enterprise-grade recharge and bill payment platform built with NestJS, Next.js, and PostgreSQL.
 
 ---
 
@@ -34,6 +34,16 @@ A comprehensive enterprise-grade recharge and bill payment platform built with N
 - **API Secret:** `demo-api-secret-67890`
 - **Initial Balance:** ₹1,000
 - **Features:** Programmatic API access for integration
+
+### Generate Demo Credentials in Fresh Install
+
+Run once in backend:
+
+```bash
+npm run seed
+```
+
+This creates/updates all demo accounts and operators in PostgreSQL.
 
 ---
 
@@ -88,8 +98,10 @@ A comprehensive enterprise-grade recharge and bill payment platform built with N
 
 ## 🧪 Quick Test
 
-1. **Login:** https://paisape-recharge-1.preview.emergentagent.com/login
+1. **Login:** `https://<your-frontend-domain>/login`
    - Use: `retailer@demo.com` / `retailer123`
+
+2. **Legacy Landing Page:** `https://<your-frontend-domain>/front-pages/legacy-landing`
 
 2. **Process Recharge:**
    - Select Jio operator
