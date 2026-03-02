@@ -65,9 +65,12 @@ const demoUsers = [
 ]
 
 export async function runAutoDemoSeed(prisma: PrismaService) {
-  if (process.env.AUTO_SEED_DEMO !== 'true') return
+  const existingUserCount = await prisma.user.count()
+  const shouldSeed = process.env.AUTO_SEED_DEMO === 'true' || existingUserCount === 0
 
-  console.log('[seed] AUTO_SEED_DEMO is enabled. Ensuring demo data exists...')
+  if (!shouldSeed) return
+
+  console.log('[seed] Ensuring demo data exists...')
 
   for (const operator of operators) {
     await prisma.operator.upsert({
@@ -80,9 +83,18 @@ export async function runAutoDemoSeed(prisma: PrismaService) {
   for (const user of demoUsers) {
     const hashedPassword = await bcrypt.hash(user.password, 10)
 
-    await prisma.user.upsert({
+    const savedUser = await prisma.user.upsert({
       where: { email: user.email },
-      update: {},
+      update: {
+        password: hashedPassword,
+        name: user.name,
+        mobile: user.mobile,
+        role: user.role as any,
+        kycStatus: user.kycStatus,
+        isActive: user.isActive,
+        apiKey: user.apiKey || null,
+        apiSecret: user.apiSecret || null
+      },
       create: {
         id: user.id,
         email: user.email,
@@ -98,10 +110,12 @@ export async function runAutoDemoSeed(prisma: PrismaService) {
     })
 
     await prisma.wallet.upsert({
-      where: { userId: user.id },
-      update: {},
+      where: { userId: savedUser.id },
+      update: {
+        balance: user.initialBalance
+      },
       create: {
-        userId: user.id,
+        userId: savedUser.id,
         balance: user.initialBalance,
         lockedBalance: 0
       }
