@@ -1,7 +1,7 @@
-import EcommerceDashboard from '../../apps/ecommerce/dashboard/page'
+import PaisaEcommerceDashboard from '@views/dashboards/ecommerce/PaisaEcommerceDashboard'
 
 const DashboardECommerce = () => {
-  return <EcommerceDashboard />
+  return <PaisaEcommerceDashboard />
 }
 
 export default DashboardECommerce
