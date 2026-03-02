@@ -72,7 +72,7 @@ const LegacyLandingPage = () => {
 
         <Grid container spacing={4} className='mbe-8 mt-1'>
           {features.map(item => (
-            <Grid key={item.title} item xs={12} md={6} lg={4}>
+            <Grid key={item.title} size={{ xs: 12, md: 6, lg: 4 }}>
               <Card>
                 <CardContent>
                   <Typography variant='h6' className='mbe-2'>
@@ -95,7 +95,7 @@ const LegacyLandingPage = () => {
             </Typography>
             <Grid container spacing={3}>
               {demoAccounts.map(account => (
-                <Grid key={account.email} item xs={12} md={6}>
+                <Grid key={account.email} size={{ xs: 12, md: 6 }}>
                   <Box className='p-4 rounded border border-solid border-[rgba(0,0,0,0.08)]'>
                     <Chip label={account.role} color='primary' size='small' className='mbe-2' />
                     <Typography className='mbe-1'>
